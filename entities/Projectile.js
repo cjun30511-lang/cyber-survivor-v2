@@ -301,18 +301,18 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                     const prev = this.trailPoints[i - 1];
                     const curr = this.trailPoints[i];
                     const alpha = i / this.trailPoints.length;
-                    this.trailGraphics.lineStyle(12 * alpha, 0xff2200, 0.16 * alpha);
+                    this.trailGraphics.lineStyle(7 * alpha, 0x3a1208, 0.18 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
-                    this.trailGraphics.lineStyle(5 * alpha, 0xffcc66, 0.7 * alpha);
+                    this.trailGraphics.lineStyle(2.8 * alpha, 0xf0b35d, 0.62 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
                 }
-                this.trailGraphics.fillStyle(0xff3300, 0.3);
-                this.trailGraphics.fillCircle(this.x, this.y, 20);
-                this.trailGraphics.fillStyle(0xffffff, 0.22);
-                this.trailGraphics.fillCircle(this.x - 4, this.y - 4, 7);
+                this.trailGraphics.fillStyle(0xff6a22, 0.16);
+                this.trailGraphics.fillCircle(this.x, this.y, 13);
+                this.trailGraphics.fillStyle(0xfff0c2, 0.2);
+                this.trailGraphics.fillCircle(this.x - 3, this.y - 3, 4);
             }
 
-            if (this.scene.fireParticles && time % 2 === 0) {
+            if (this.scene.fireParticles && time % 5 === 0) {
                 this.scene.fireParticles.emitParticleAt(this.x, this.y, 1, Math.random() > 0.5 ? 0xffaa00 : 0xff3300);
             }
         }

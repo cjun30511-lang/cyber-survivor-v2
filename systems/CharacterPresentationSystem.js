@@ -29,6 +29,7 @@ export class CharacterPresentationSystem {
         this.asyncEvents = [];
         this.recoilOffset = { x: 0, y: 0 };
         this.combatGlowUntil = 0;
+        this.nextFootstepFxAt = 0;
 
         // 3. 构建接地脚底阴影 (半透明黑椭圆，固定在脚底，不随上下起伏)
         this.shadow = this.scene.add.graphics();
@@ -293,33 +294,35 @@ export class CharacterPresentationSystem {
                 this.player.play('player_run_anim', true);
             }
 
-            // 行走脚底尘埃/修女冷色圣辉拖尾粒子发射
-            if (isNun && time % 8 === 0 && this.scene.fireParticles) {
+            // 行走脚底尘埃/修女冷色圣辉：低频、短生命周期，避免跑动时形成廉价拖影。
+            if (isNun && time >= this.nextFootstepFxAt && this.scene.fireParticles) {
+                this.nextFootstepFxAt = time + 95;
                 const speed = Math.sqrt(speedSq);
                 const dx = -vx / speed;
                 const dy = -vy / speed;
-                const emitX = this.player.x + dx * 6 + Phaser.Math.Between(-3, 3);
-                const emitY = this.player.y + 36 + dy * 2 + Phaser.Math.Between(-3, 3);
-                const pColor = Math.random() > 0.5 ? 0xf5efe3 : 0xd8d1c4;
+                const emitX = this.player.x + dx * 5 + Phaser.Math.Between(-2, 2);
+                const emitY = this.player.y + 34 + dy * 2 + Phaser.Math.Between(-2, 2);
+                const pColor = Math.random() > 0.5 ? 0xf2e8d6 : 0xbeb5a8;
 
                 const p = this.scene.add.sprite(emitX, emitY, 'fireParticle');
                 p.setDepth(9); 
-                p.setScale(Phaser.Math.FloatBetween(0.45, 0.75));
+                p.setAlpha(0.52);
+                p.setScale(Phaser.Math.FloatBetween(0.22, 0.42));
                 p.setTint(pColor);
 
                 this.scene.physics.add.existing(p);
                 p.body.setVelocity(
-                    dx * Phaser.Math.FloatBetween(40, 80) + Phaser.Math.FloatBetween(-10, 10),
-                    dy * Phaser.Math.FloatBetween(40, 80) + Phaser.Math.FloatBetween(-10, 10)
+                    dx * Phaser.Math.FloatBetween(22, 48) + Phaser.Math.FloatBetween(-8, 8),
+                    dy * Phaser.Math.FloatBetween(22, 48) + Phaser.Math.FloatBetween(-8, 8)
                 );
-                p.body.setDrag(150);
+                p.body.setDrag(220);
 
                 this.scene.tweens.add({
                     targets: p,
                     alpha: 0,
                     scaleX: 0.05,
                     scaleY: 0.05,
-                    duration: Phaser.Math.Between(200, 400),
+                    duration: Phaser.Math.Between(180, 280),
                     onComplete: () => p.destroy()
                 });
             } else if (!isNun) {
@@ -543,27 +546,39 @@ export class CharacterPresentationSystem {
         this.scene.tweens.killTweensOf(this.player);
         this.player.setScale(PlayerConfig.baseScale * 1.35, PlayerConfig.baseScale * 0.7);
 
-        // 产生 5 次带有化身专属色彩的渐隐残影拖尾 (Ghost Trails)
+        // 冲刺只保留抽象速度线，避免缺失贴图占位绿框和低清残影。
         const trailColor = this.themeColor || 0xe5a93c;
         const trailTimer = this.trackEvent(this.scene.time.addEvent({
-            delay: 30,
-            repeat: 4,
+            delay: 38,
+            repeat: 2,
             callback: () => {
                 if (!this.player.active || !this.scene) return;
-                const ghost = this.scene.add.sprite(this.player.x, this.player.y, 'player');
-                ghost.setAlpha(0.45);
-                ghost.setTint(trailColor); // 化身主色调残影
-                ghost.setFlipX(this.player.flipX);
-                ghost.setScale(this.player.scaleX, this.player.scaleY);
-                ghost.setDepth(this.player.depth - 1);
+                const speedLine = this.scene.add.graphics();
+                speedLine.setDepth(this.player.depth - 1);
+
+                const angle = Math.atan2(vy, vx || (this.player.flipX ? -1 : 1));
+                const backX = Math.cos(angle + Math.PI);
+                const backY = Math.sin(angle + Math.PI);
+                speedLine.lineStyle(3, trailColor, 0.34);
+                speedLine.lineBetween(
+                    this.player.x + backX * 8,
+                    this.player.y + 6 + backY * 5,
+                    this.player.x + backX * 56,
+                    this.player.y + 6 + backY * 16
+                );
+                speedLine.lineStyle(1.5, 0xf4ead7, 0.28);
+                speedLine.lineBetween(
+                    this.player.x + backX * 4,
+                    this.player.y - 8 + backY * 4,
+                    this.player.x + backX * 40,
+                    this.player.y - 8 + backY * 10
+                );
                 
                 this.scene.tweens.add({
-                    targets: ghost,
+                    targets: speedLine,
                     alpha: 0,
-                    scaleX: 0.05,
-                    scaleY: 0.05,
-                    duration: 250,
-                    onComplete: () => ghost.destroy()
+                    duration: 170,
+                    onComplete: () => speedLine.destroy()
                 });
             }
         }));
@@ -1084,7 +1099,22 @@ export class CharacterPresentationSystem {
     onHeal() {
         if (this.state === 'dead') return;
 
-        this.player.setTint(0x44ff44);
+        this.player.setTint(0xf4ead7);
+        if (this.scene && !this.scene.isTransitioningOut) {
+            const healRing = this.scene.add.graphics();
+            healRing.setDepth(12);
+            healRing.lineStyle(2, 0xd9b56c, 0.62);
+            healRing.strokeEllipse(this.player.x, this.player.y + 16, 34, 14);
+            this.scene.tweens.add({
+                targets: healRing,
+                alpha: 0,
+                scaleX: 1.9,
+                scaleY: 1.9,
+                duration: 260,
+                ease: 'Cubic.easeOut',
+                onComplete: () => healRing.destroy()
+            });
+        }
         this.safeDelayedCall(150, () => {
             if (this.state !== 'dead') {
                 this.applyRoleVisual();

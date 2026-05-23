@@ -5,7 +5,7 @@ export const PlayerConfig = {
     // 基础属性
     baseMaxHp: 100,
     baseSpeed: 180,
-    baseScale: 1.36,
+    baseScale: 1.18,
     hitboxWidth: 24,
     hitboxHeight: 48,
     
