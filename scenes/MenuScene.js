@@ -62,13 +62,23 @@ export class MenuScene extends Phaser.Scene {
         vignette.fillGradientStyle(0x060507, 0x060507, 0x151117, 0x151117, 0.9, 0.9, 0.55, 0.55);
         vignette.fillRect(0, 0, w, h);
 
-        const mist = this.add.graphics().setDepth(0.4);
-        mist.fillStyle(0xf3eee4, 0.035);
-        mist.fillEllipse(360, 230, 420, 160);
-        mist.fillStyle(0xffffff, 0.03);
-        mist.fillEllipse(360, 500, 520, 320);
-        mist.fillStyle(0xb21f24, 0.06);
-        mist.fillEllipse(360, 1000, 580, 200);
+        const chapel = this.add.graphics().setDepth(0.4);
+        chapel.fillStyle(0x0e0a0d, 0.66);
+        chapel.fillRect(0, 0, 90, h);
+        chapel.fillRect(w - 90, 0, 90, h);
+        chapel.lineStyle(1, 0xeee4d3, 0.08);
+        for (let x = 120; x <= 600; x += 120) {
+            chapel.lineBetween(x, 118, x - 60, 680);
+            chapel.lineBetween(x, 118, x + 60, 680);
+        }
+
+        const mist = this.add.graphics().setDepth(0.5);
+        mist.fillStyle(0xf3eee4, 0.04);
+        mist.fillEllipse(360, 228, 520, 170);
+        mist.fillStyle(0xffffff, 0.035);
+        mist.fillEllipse(360, 610, 610, 420);
+        mist.fillStyle(0xb21f24, 0.055);
+        mist.fillEllipse(360, 1010, 600, 230);
     }
 
     drawHeader() {
@@ -175,14 +185,15 @@ export class MenuScene extends Phaser.Scene {
 
     drawContentShell() {
         this.contentShell = this.add.graphics().setDepth(1.1);
-        this.contentShell.fillStyle(0x100c11, 0.88);
-        this.contentShell.fillRoundedRect(36, 352, 648, 710, 30);
-        this.contentShell.fillStyle(0xf6f3ee, 0.03);
-        this.contentShell.fillRoundedRect(56, 372, 608, 120, 24);
-        this.contentShell.fillStyle(0x0d090d, 0.84);
-        this.contentShell.fillRoundedRect(56, 504, 608, 536, 24);
-        this.contentShell.lineStyle(1.3, 0xf1e7d8, 0.14);
-        this.contentShell.strokeRoundedRect(36, 352, 648, 710, 30);
+        this.contentShell.fillStyle(0x0c080b, 0.82);
+        this.contentShell.fillRoundedRect(32, 354, 656, 708, 16);
+        this.contentShell.fillStyle(0x171016, 0.92);
+        this.contentShell.fillRoundedRect(52, 374, 616, 668, 12);
+        this.contentShell.lineStyle(1, 0xf1e7d8, 0.16);
+        this.contentShell.strokeRoundedRect(32, 354, 656, 708, 16);
+        this.contentShell.lineStyle(1, 0x6b1018, 0.22);
+        this.contentShell.lineBetween(88, 394, 632, 394);
+        this.contentShell.lineBetween(88, 1012, 632, 1012);
     }
 
     drawStartButtonShell() {
@@ -323,72 +334,67 @@ export class MenuScene extends Phaser.Scene {
 
         const role = RolePresentationConfig.roles.nun;
         const panel = this.add.graphics().setDepth(2.2);
-        panel.fillStyle(0x120d12, 0.96);
-        panel.fillRoundedRect(58, 378, 604, 648, 26);
-        panel.fillStyle(0xf4f0e7, 0.04);
-        panel.fillRoundedRect(78, 398, 564, 80, 20);
-        panel.fillStyle(0x09070a, 0.9);
-        panel.fillRoundedRect(78, 490, 564, 294, 24);
-        panel.fillStyle(0x140f14, 0.92);
-        panel.fillRoundedRect(78, 800, 564, 206, 22);
-        panel.lineStyle(1.2, 0xf0e7d7, 0.18);
-        panel.strokeRoundedRect(58, 378, 604, 648, 26);
+        panel.fillStyle(0x080507, 0.72);
+        panel.fillRoundedRect(64, 392, 592, 596, 12);
+        panel.fillStyle(0xf4f0e7, 0.045);
+        panel.fillRoundedRect(84, 412, 552, 64, 8);
+        panel.fillStyle(0x020102, 0.72);
+        panel.fillRoundedRect(82, 500, 556, 288, 8);
+        panel.fillStyle(0x120d12, 0.92);
+        panel.fillRoundedRect(84, 802, 552, 170, 8);
+        panel.lineStyle(1.2, 0xf0e7d7, 0.14);
+        panel.strokeRoundedRect(64, 392, 592, 596, 12);
         this.roleElements.push(panel);
 
         const rune = this.add.graphics().setDepth(2.3);
-        rune.lineStyle(1.5, 0xf0e7d7, 0.16);
-        rune.strokeCircle(360, 637, 126);
-        rune.strokeCircle(360, 637, 172);
-        rune.lineStyle(1, 0xbdb1a0, 0.1);
-        rune.lineBetween(234, 637, 486, 637);
-        rune.lineBetween(360, 511, 360, 763);
+        rune.lineStyle(1.5, 0xf0e7d7, 0.18);
+        rune.strokeCircle(360, 642, 138);
+        rune.strokeCircle(360, 642, 190);
+        rune.lineStyle(1, 0xbdb1a0, 0.11);
+        rune.lineBetween(186, 642, 534, 642);
+        rune.lineBetween(360, 474, 360, 792);
+        rune.lineStyle(2, 0x761018, 0.28);
+        rune.lineBetween(220, 780, 500, 780);
         this.roleElements.push(rune);
 
-        this.addRoleText(104, 424, '当前主角', '16px', '#cabfac', 0);
-        this.addRoleText(104, 448, '圣裁修女', '24px', '#faf6ef', 0);
-        this.addRoleText(104, 474, 'Bone-white covenant caster', '13px', '#bfb6ae', 0);
-        this.addRoleText(540, 451, '已锁定', '18px', '#f2e7d2', 1, 1);
+        this.addRoleText(108, 428, 'CURRENT VESSEL', '11px', '#9f958c', 0);
+        this.addRoleText(108, 455, '圣裁修女', '28px', '#faf6ef', 0);
+        this.addRoleText(612, 452, '已锁定', '16px', '#f2e7d2', 1, 0.5);
 
         this.previewBacklight = this.add.graphics().setDepth(2.5);
         this.roleElements.push(this.previewBacklight);
 
         const keyartTexture = this.hasMenuAsset(MENU_ASSET_SLOTS.nunKeyart) ? MENU_ASSET_SLOTS.nunKeyart : 'nun_portrait';
-        this.previewSprite = this.add.sprite(360, 610, keyartTexture).setDepth(3);
+        this.previewSprite = this.add.sprite(360, 620, keyartTexture).setDepth(3);
         if (keyartTexture === MENU_ASSET_SLOTS.nunKeyart) {
-            this.previewSprite.setDisplaySize(340, 340);
+            this.previewSprite.setDisplaySize(400, 400);
         } else {
-            this.previewSprite.setScale(0.32);
+            this.previewSprite.setScale(0.39);
         }
         this.roleElements.push(this.previewSprite);
 
-        this.previewWeapon = this.add.sprite(430, 605, 'weapon_nun').setOrigin(0.5, 0.88).setScale(1.16).setDepth(3.1);
-        this.roleElements.push(this.previewWeapon);
-
-        this.previewTether = this.add.graphics().setDepth(3.05);
-        this.roleElements.push(this.previewTether);
-
         const previewTween = {
             targets: this.previewSprite,
-            y: 607,
-            duration: 1900,
+            y: 612,
+            duration: 2200,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
         };
         if (keyartTexture === MENU_ASSET_SLOTS.nunKeyart) {
-            previewTween.displayWidth = 352;
-            previewTween.displayHeight = 352;
+            previewTween.displayWidth = 410;
+            previewTween.displayHeight = 410;
         } else {
-            previewTween.scaleX = 0.335;
-            previewTween.scaleY = 0.335;
+            previewTween.scaleX = 0.4;
+            previewTween.scaleY = 0.4;
         }
         this.tweens.add(previewTween);
 
-        this.addRoleText(360, 792, '骨白修会审判官', '30px', '#fdf8f2', 1);
-        this.addRoleText(360, 826, role.title, '14px', '#d8cec0', 1);
+        this.addRoleText(360, 820, '骨白修会审判官', '32px', '#fdf8f2', 0.5);
+        this.addRoleText(360, 854, role.title, '14px', '#d8cec0', 0.5);
 
-        const blurb = '中远距离圣焰法球压制。\n骨白主视觉素材接入后替换当前占位图。';
-        this.addRoleText(360, 870, blurb, '13px', '#bdb4ab', 0.5, 0.5, { align: 'center', lineSpacing: 7, wordWrap: { width: 460 } });
+        const blurb = '远程圣焰法球压制，优先完成单角色商业样板。';
+        this.addRoleText(360, 890, blurb, '13px', '#bdb4ab', 0.5, 0.5, { align: 'center', lineSpacing: 7, wordWrap: { width: 460 } });
 
         const stats = [
             ['生命', `${role.baseHpMax}`, '#f7b6b6'],
@@ -396,18 +402,18 @@ export class MenuScene extends Phaser.Scene {
             ['速度', `${role.baseSpeed}`, '#dbe7f7']
         ];
         stats.forEach(([label, value, color], index) => {
-            const x = 161 + index * 186;
+            const x = 104 + index * 184;
             const card = this.add.graphics().setDepth(2.4);
             card.fillStyle(0x171218, 0.95);
-            card.fillRoundedRect(x, 930, 166, 64, 16);
-            card.fillStyle(0xf5f1ea, 0.045);
-            card.fillRoundedRect(x + 8, 938, 150, 18, 10);
-            card.lineStyle(1, 0xf0e7d7, 0.14);
-            card.strokeRoundedRect(x, 930, 166, 64, 16);
+            card.fillRoundedRect(x, 924, 166, 58, 8);
+            card.fillStyle(0xf5f1ea, 0.035);
+            card.fillRoundedRect(x + 8, 932, 150, 16, 8);
+            card.lineStyle(1, 0xf0e7d7, 0.12);
+            card.strokeRoundedRect(x, 924, 166, 58, 8);
             this.roleElements.push(card);
 
-            this.addRoleText(x + 20, 949, label, '12px', '#a89e96', 0);
-            this.addRoleText(x + 20, 978, value, '20px', color, 0);
+            this.addRoleText(x + 20, 941, label, '12px', '#a89e96', 0);
+            this.addRoleText(x + 20, 969, value, '19px', color, 0);
         });
     }
 
@@ -676,37 +682,9 @@ export class MenuScene extends Phaser.Scene {
 
         this.previewBacklight.clear();
         this.previewBacklight.fillStyle(0xf0e7d7, 0.06);
-        this.previewBacklight.fillEllipse(px, py - 16, 208 * pulse, 228 * pulse);
+        this.previewBacklight.fillEllipse(px, py - 16, 258 * pulse, 292 * pulse);
         this.previewBacklight.fillStyle(0xffffff, 0.05);
-        this.previewBacklight.fillEllipse(px, py - 16, 132 * pulse, 154 * pulse);
-
-        if (this.previewWeapon?.active) {
-            const orbitX = 86 + Math.cos(time * 0.0025) * 5;
-            const orbitY = -12 + Math.sin(time * 0.005) * 6;
-            this.previewWeapon.setPosition(px + orbitX, py + orbitY);
-            this.previewWeapon.setAngle(16 + Math.sin(time * 0.005) * 5);
-            this.previewWeapon.setScale(1.28 * (1 + Math.sin(time * 0.0035) * 0.03));
-        }
-
-        if (this.previewTether?.active && this.previewWeapon?.active) {
-            this.previewTether.clear();
-            const startX = px + 54;
-            const startY = py - 2;
-            const endX = this.previewWeapon.x;
-            const endY = this.previewWeapon.y - 24;
-            const midX = (startX + endX) / 2 + Math.sin(time * 0.015) * 7;
-            const midY = (startY + endY) / 2 + Math.cos(time * 0.016) * 7;
-            const curve = new Phaser.Curves.QuadraticBezier(
-                new Phaser.Math.Vector2(startX, startY),
-                new Phaser.Math.Vector2(midX, midY),
-                new Phaser.Math.Vector2(endX, endY)
-            );
-            const points = curve.getPoints(16);
-            this.previewTether.lineStyle(2, 0xf0e7d7, 0.28);
-            this.previewTether.strokePoints(points, false, false);
-            this.previewTether.lineStyle(0.9, 0xffffff, 0.74);
-            this.previewTether.strokePoints(points, false, false);
-        }
+        this.previewBacklight.fillEllipse(px, py - 16, 164 * pulse, 184 * pulse);
     }
 
     requestSceneChange(sceneKey, beforeStart = null, data = undefined) {
