@@ -1,0 +1,19 @@
+.DS_Store
+node_modules/
+.env
+.env.*
+*.log
+
+# Local scratch output and transient captures.
+scratch/*.png
+scratch/*.webp
+scratch/*.jpg
+scratch/*.jpeg
+scratch/*.mp4
+scratch/*.log
+
+# Python/node caches.
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
