@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
 
 ROOT = Path("/Users/shenjun8676/.gemini/antigravity/scratch/cyber_survivor_v2")
@@ -18,6 +18,7 @@ QA_DIR = ROOT / "scratch/runtime_acceptance"
 PREVIEW = QA_DIR / "runtime_preview_contact.png"
 IRON_TANK_QUALITY_SOURCE = QUALITY_SRC / "iron_tank_source_candidate_01.png"
 BOSS_DEMON_QUALITY_SOURCE = QUALITY_SRC / "boss_demon_source_candidate_02.png"
+MAP_SPRINT_SOURCE = SRC / "map_sprint_1" / "map_source_contact_02_accepted_distinct.png"
 
 
 def remove_black_backdrop(cell: Image.Image) -> Image.Image:
@@ -1026,15 +1027,15 @@ def build_normal_enemy_walks(
             "mark": (154, 122, 174),
         },
         "imp": {
-            "source": boss,
-            "tint": (160, 48, 32),
-            "strength": 0.20,
-            "brightness": 0.76,
-            "contrast": 1.04,
-            "saturation": 0.86,
-            "scale_x": 0.74,
-            "scale_y": 0.74,
-            "mark": (214, 92, 58),
+            "source": skeleton,
+            "tint": (132, 46, 36),
+            "strength": 0.24,
+            "brightness": 0.86,
+            "contrast": 1.02,
+            "saturation": 0.78,
+            "scale_x": 0.84,
+            "scale_y": 0.82,
+            "mark": (190, 82, 58),
         },
         "wraith": {
             "source": ghost,
@@ -1111,17 +1112,57 @@ def build_boss_variant_idles(boss: list[Image.Image]) -> dict[str, list[Image.Im
     return variants
 
 
+def make_art_dungeon_map_pair(index: int, size: int = 1024) -> tuple[Image.Image, Image.Image]:
+    atlas = Image.open(MAP_SPRINT_SOURCE).convert("RGB")
+    columns = 4
+    rows = 2
+    if index < 0 or index >= columns * rows:
+        raise ValueError(f"map index out of atlas range: {index}")
+
+    cell_w = atlas.width // columns
+    cell_h = atlas.height // rows
+    col = index % columns
+    row = index // columns
+    margin_x = max(2, int(cell_w * 0.012))
+    margin_y = max(2, int(cell_h * 0.012))
+    cell = atlas.crop((
+        col * cell_w + margin_x,
+        row * cell_h + margin_y,
+        (col + 1) * cell_w - margin_x,
+        (row + 1) * cell_h - margin_y,
+    ))
+    base = ImageOps.fit(cell, (size, size), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5)).convert("RGBA")
+    base = ImageEnhance.Brightness(base).enhance(1.14)
+    base = ImageEnhance.Contrast(base).enhance(1.08)
+    base = ImageEnhance.Color(base).enhance(1.06)
+
+    gray = base.convert("L")
+    edges = gray.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(0.35))
+    edge_np = np.array(edges)
+    alpha = np.clip((edge_np.astype(np.float32) - 24) * 1.25, 0, 42).astype(np.uint8)
+    overlay_np = np.zeros((size, size, 4), dtype=np.uint8)
+    overlay_np[..., 0] = 190
+    overlay_np[..., 1] = 188
+    overlay_np[..., 2] = 176
+    overlay_np[..., 3] = alpha
+    overlay = Image.fromarray(overlay_np, "RGBA")
+    return base, overlay
+
+
 def make_dungeon_map_pair(index: int, size: int = 1024) -> tuple[Image.Image, Image.Image]:
+    if MAP_SPRINT_SOURCE.exists():
+        return make_art_dungeon_map_pair(index, size)
+
     rng = np.random.default_rng(5000 + index * 97)
     palettes = [
-        ((28, 31, 29), (42, 47, 43)),
-        ((27, 30, 34), (39, 44, 48)),
-        ((30, 29, 34), (43, 42, 48)),
-        ((29, 32, 31), (41, 47, 45)),
-        ((31, 30, 29), (45, 43, 40)),
-        ((26, 31, 34), (37, 43, 46)),
-        ((31, 28, 33), (43, 39, 45)),
-        ((28, 32, 30), (40, 46, 42)),
+        ((42, 45, 40), (68, 73, 62)),
+        ((38, 45, 54), (61, 72, 84)),
+        ((47, 39, 55), (74, 61, 86)),
+        ((38, 51, 45), (62, 82, 70)),
+        ((52, 45, 38), (86, 70, 56)),
+        ((35, 50, 58), (58, 78, 88)),
+        ((50, 38, 54), (82, 58, 86)),
+        ((40, 52, 42), (67, 84, 62)),
     ]
     low, high = palettes[index % len(palettes)]
     coarse = rng.normal(0, 1, (64, 64))
@@ -1134,18 +1175,43 @@ def make_dungeon_map_pair(index: int, size: int = 1024) -> tuple[Image.Image, Im
         value = low[channel] + (high[channel] - low[channel]) * noise_np
         base_np[..., channel] = np.clip(value, 0, 255).astype(np.uint8)
     base = Image.fromarray(base_np)
-    base = ImageEnhance.Color(base).enhance(0.42)
-    base = ImageEnhance.Contrast(base).enhance(0.72)
-    base = ImageEnhance.Brightness(base).enhance(0.82)
+    base = ImageEnhance.Color(base).enhance(0.68)
+    base = ImageEnhance.Contrast(base).enhance(0.96)
+    base = ImageEnhance.Brightness(base).enhance(1.08)
 
     draw = ImageDraw.Draw(base, "RGBA")
     tile = 128
     for x in range(0, size + tile, tile):
         jitter = int(rng.integers(-8, 9))
-        draw.line((x + jitter, 0, x + jitter, size), fill=(64, 66, 62, 26), width=2)
+        draw.line((x + jitter, 0, x + jitter, size), fill=(118, 118, 108, 34), width=2)
     for y in range(0, size + tile, tile):
         jitter = int(rng.integers(-8, 9))
-        draw.line((0, y + jitter, size, y + jitter), fill=(14, 15, 14, 32), width=2)
+        draw.line((0, y + jitter, size, y + jitter), fill=(14, 15, 14, 44), width=2)
+
+    landmark_colors = [
+        (114, 128, 98),
+        (86, 118, 134),
+        (116, 86, 136),
+        (78, 126, 92),
+        (132, 104, 74),
+        (72, 118, 136),
+        (132, 78, 130),
+        (94, 126, 78),
+    ]
+    accent = landmark_colors[index % len(landmark_colors)]
+    for _ in range(5):
+        cx = int(rng.integers(80, size - 80))
+        cy = int(rng.integers(80, size - 80))
+        rw = int(rng.integers(60, 150))
+        rh = int(rng.integers(18, 44))
+        rot = rng.uniform(-0.8, 0.8)
+        pts = []
+        for px, py in [(-rw, -rh), (rw, -rh), (rw, rh), (-rw, rh)]:
+            x = cx + int(np.cos(rot) * px - np.sin(rot) * py)
+            y = cy + int(np.sin(rot) * px + np.cos(rot) * py)
+            pts.append((x, y))
+        draw.polygon(pts, fill=(*accent, 26))
+        draw.line(pts + [pts[0]], fill=(*accent, 44), width=2)
 
     overlay = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay, "RGBA")
@@ -1160,13 +1226,13 @@ def make_dungeon_map_pair(index: int, size: int = 1024) -> tuple[Image.Image, Im
             px = x + int(np.cos(angle) * d + rng.normal(0, 9))
             py = y + int(np.sin(angle) * d + rng.normal(0, 9))
             points.append((px, py))
-        od.line(points, fill=(84, 88, 82, int(rng.integers(26, 46))), width=int(rng.integers(1, 3)), joint="curve")
+        od.line(points, fill=(*accent, int(rng.integers(40, 72))), width=int(rng.integers(1, 3)), joint="curve")
     for _ in range(36):
         x = int(rng.integers(0, size))
         y = int(rng.integers(0, size))
         r = int(rng.integers(2, 8))
-        shade = int(rng.integers(52, 76))
-        od.ellipse((x - r, y - r, x + r, y + r), fill=(shade, shade + 2, shade, int(rng.integers(12, 26))))
+        shade = int(rng.integers(66, 96))
+        od.ellipse((x - r, y - r, x + r, y + r), fill=(shade, shade + 2, shade, int(rng.integers(24, 44))))
 
     overlay = overlay.filter(ImageFilter.GaussianBlur(0.35))
     return base, overlay

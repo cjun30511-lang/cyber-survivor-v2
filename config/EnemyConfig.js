@@ -10,7 +10,7 @@ export const EnemyConfig = {
         speed: 75,
         damage: 10,
         xpReward: 15,
-        scale: 0.54,
+        scale: 0.46,
         hitboxWidth: 28,      // 精准物理碰撞包围盒，彻底杜绝空气碰撞
         hitboxHeight: 28,
         goldReward: 1
@@ -25,7 +25,7 @@ export const EnemyConfig = {
         speed: 60,
         damage: 15,
         xpReward: 30,
-        scale: 0.54,
+        scale: 0.48,
         hitboxWidth: 32,      // 匹配浮空祭司纤细体态的有效碰撞盒
         hitboxHeight: 45,
         shootCooldown: 3000,
@@ -43,7 +43,7 @@ export const EnemyConfig = {
         speed: 45,
         damage: 25,
         xpReward: 60,
-        scale: 0.94,
+        scale: 0.84,
         hitboxWidth: 48,      // 进一步收物理足迹，避免压住主角活动空间
         hitboxHeight: 58,
         goldReward: 5
@@ -56,7 +56,7 @@ export const EnemyConfig = {
         speed: 82,
         damage: 12,
         xpReward: 20,
-        scale: 0.56,
+        scale: 0.46,
         hitboxWidth: 30,
         hitboxHeight: 34,
         goldReward: 1
@@ -69,7 +69,7 @@ export const EnemyConfig = {
         speed: 68,
         damage: 16,
         xpReward: 34,
-        scale: 0.58,
+        scale: 0.47,
         hitboxWidth: 32,
         hitboxHeight: 42,
         goldReward: 2
@@ -82,7 +82,7 @@ export const EnemyConfig = {
         speed: 115,
         damage: 13,
         xpReward: 24,
-        scale: 0.48,
+        scale: 0.36,
         hitboxWidth: 26,
         hitboxHeight: 28,
         goldReward: 2
@@ -95,7 +95,7 @@ export const EnemyConfig = {
         speed: 78,
         damage: 18,
         xpReward: 40,
-        scale: 0.56,
+        scale: 0.47,
         hitboxWidth: 30,
         hitboxHeight: 42,
         goldReward: 3
@@ -109,7 +109,7 @@ export const EnemyConfig = {
         speed: 42,
         damage: 30,
         xpReward: 76,
-        scale: 0.92,
+        scale: 0.78,
         hitboxWidth: 52,
         hitboxHeight: 62,
         goldReward: 6
@@ -128,7 +128,7 @@ export const EnemyConfig = {
         speed: 85,
         damage: 35,
         xpReward: 1000,
-        scale: 0.96,
+        scale: 1.24,
         hitboxWidth: 72,      // 继续压缩碰撞范围，使首领压迫感来自体态而不是空气墙
         hitboxHeight: 84,
         goldReward: 50,
@@ -148,7 +148,7 @@ export const EnemyConfig = {
         speed: 78,
         damage: 32,
         xpReward: 1000,
-        scale: 0.92,
+        scale: 1.18,
         hitboxWidth: 74,
         hitboxHeight: 86,
         goldReward: 50,
@@ -168,7 +168,7 @@ export const EnemyConfig = {
         speed: 70,
         damage: 38,
         xpReward: 1000,
-        scale: 0.94,
+        scale: 1.20,
         hitboxWidth: 78,
         hitboxHeight: 88,
         goldReward: 55,
@@ -188,7 +188,7 @@ export const EnemyConfig = {
         speed: 66,
         damage: 42,
         xpReward: 1000,
-        scale: 0.96,
+        scale: 1.24,
         hitboxWidth: 80,
         hitboxHeight: 90,
         goldReward: 60,

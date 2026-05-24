@@ -1,6 +1,6 @@
 # Cyber Survivor V2 Task State
 
-Updated: 2026-05-24 11:56 CST
+Updated: 2026-05-24 12:55 CST
 
 ## Goal
 
@@ -263,3 +263,34 @@ Next safe handoff point:
   - `python3 build.py`
   - `node scratch/capture_screenshots.js`
   - `node scratch/diagnose_evaluations.js`
+
+### 2026-05-24 中文补充：手机截图反馈后的地图与比例修正
+
+- 用户手机截图反馈：主角身后有碎片残影、施法点仍像小火柴光点、Boss 比人物还小、8 张高质量地图未看到、画面比例需要继续调整。
+- 本轮按多智能体分工收口第一步：
+  - 主控智能体：拆分验收标准和提交边界。
+  - 美术导演智能体：确认手机端比例标准，Boss 应明显大于主角和重装怪，地图必须是不同空间语言而不是调色。
+  - 运行接线/验收智能体：定位主角残影、法器发射点、Boss scale、地图过黑/程序化的问题。
+- 已接入高质量地图源图：
+  - 已接受源图：`scratch/generated_art_v2/map_sprint_1/map_source_contact_02_accepted_distinct.png`
+  - 已保留但拒绝：`scratch/generated_art_v2/map_sprint_1/map_source_contact_01_rejected_similar.png`
+  - `tools/rebuild_core_hd_assets.py` 现在优先从已接受的 8 图联系图切出 `map_base_0..7.png` 和 `map_overlay_0..7.png`，程序化地图只作为源图缺失时的兜底。
+- 已保留 Boss 源图候选用于下一步动作帧：
+  - `scratch/generated_art_v2/boss_sprint_1/boss_source_contact_01_accepted.png`
+- 已处理当前手机截图里最明显的表现问题：
+  - 去掉主角常驻脚下火花/残影类表现，减少身后碎片感。
+  - 统一施法发射点到手杖/法器尖端，放大符咒弹体并减少“小火柴光点”读感。
+  - Boss scale 从上一轮收缩值恢复到首领层级；最新运行截图中 Boss 已明显大于主角和 Iron Tank，不再继续放大。
+  - 高质量地图叠层透明度下调，避免把源图又盖黑。
+- 已重新构建：
+  - `python3 -m py_compile tools/rebuild_core_hd_assets.py`
+  - `python3 tools/rebuild_core_hd_assets.py`
+  - `python3 build.py`
+- 已重新生成手机比例运行截图：
+  - `scratch/runtime_acceptance/current_mobile/real_monsters_heavy.png`
+  - `scratch/runtime_acceptance/current_mobile/real_combat_chaos.png`
+  - `scratch/runtime_acceptance/current_mobile/real_player_combat.png`
+- 最新视觉结论：
+  - 地图方向已纠正为高质量源图资产，8 张图在 QA 联系图中能区分为教堂、机械工坊、墓园、水渠、熔炉、虚空裂隙、瘟疫庭院、冰殿。
+  - Boss 当前比例已经足够大；继续 scale tune 的收益低，风险是遮挡战场。
+  - 下一步应进入 Boss 动作帧完善和技能差异化，而不是继续调比例或只换颜色。

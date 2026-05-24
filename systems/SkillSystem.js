@@ -139,6 +139,14 @@ export class SkillSystem {
                 mainAngle = Phaser.Math.Angle.Between(player.x, player.y, nearestEnemies[0].x, nearestEnemies[0].y);
             }
 
+            if (roleKey === 'nun' && player.presenter && player.presenter.weapon && player.presenter.weapon.active) {
+                const targetDeg = Phaser.Math.RadToDeg(mainAngle);
+                const isFlip = Math.cos(mainAngle) < 0;
+                player.setFlipX(isFlip);
+                player.presenter.weapon.setFlipX(isFlip);
+                player.presenter.weapon.setAngle(targetDeg + (isFlip ? -35 : 35));
+            }
+
             for (let i = 0; i < count; i++) {
                 let targetEnemy = freshEnemies[i] || nearestEnemies[i];
                 let angle = mainAngle;
@@ -160,7 +168,7 @@ export class SkillSystem {
 
                 if (roleKey === 'nun' && player.presenter?.getSpellMuzzlePoint) {
                     // 修女必须从法器枪口真正发射，而不是从角色中心冒出。
-                    const muzzle = player.presenter.getSpellMuzzlePoint(angle, 46);
+                    const muzzle = player.presenter.getSpellMuzzlePoint(angle, 62);
                     const spreadOffset = (i - (count - 1) / 2) * 18;
                     const sideAngle = angle + Math.PI / 2;
                     spawnX = muzzle.x + Math.cos(sideAngle) * spreadOffset;
@@ -178,14 +186,6 @@ export class SkillSystem {
                     damage
                 );
                 this.projectilesGroup.add(proj);
-            }
-
-            // 在出手瞬间，将法器角度强制旋转到射击方向（斜指前方）达成100%视觉重合
-            if (roleKey === 'nun' && player.presenter && player.presenter.weapon && player.presenter.weapon.active) {
-                const targetDeg = Phaser.Math.RadToDeg(mainAngle);
-                const isFlip = player.flipX;
-                const blastAngle = targetDeg + (isFlip ? -25 : 25);
-                player.presenter.weapon.setAngle(blastAngle);
             }
 
             // 播放法器枪口焰和爆散火花 (在出手瞬间使用实际物理夹角)

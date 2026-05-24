@@ -76,7 +76,7 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
 
         if (roleKey === 'nun') {
             texture = `talisman_proj_${magicVariant}`;
-            scale = 0.52;
+            scale = 0.74;
             const rangedSpeed = 640;
             vx = Math.cos(angle) * rangedSpeed;
             vy = Math.sin(angle) * rangedSpeed;
@@ -142,25 +142,25 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
         const isNun = roleKey === 'nun';
 
         this.trailTimer = scene.time.addEvent({
-            delay: isNun ? 24 : (isExorcist ? 30 : 40),
+            delay: isNun ? 34 : (isExorcist ? 30 : 40),
             loop: true,
             callback: () => {
                 if (!this.active || !this.scene || !this.body) return;
                 if (this.scene.isTransitioningOut) return;
                 if (this.scene.fireParticles) {
                     if (isNun) {
-                        // 修女符箓拖尾：稀疏纸灰和骨白余光，避免低质橙色火星糊屏。
+                        // 修女符箓拖尾：只保留短寿命骨白尾迹，避免手机端读成小火柴碎点。
                         const travelAngle = Math.atan2(this.body.velocity.y, this.body.velocity.x);
                         for (let k = 0; k < 1; k++) {
                             const emitAngle = travelAngle + Math.PI + Phaser.Math.FloatBetween(-0.12, 0.12);
-                            const pSpeed = Phaser.Math.FloatBetween(36, 78);
-                            const pColor = Math.random() > 0.5 ? 0xf2efe2 : 0x7a1c1c;
-                            const pScale = Phaser.Math.FloatBetween(0.24, 0.42);
+                            const pSpeed = Phaser.Math.FloatBetween(24, 48);
+                            const pScale = Phaser.Math.FloatBetween(0.18, 0.28);
 
                             const p = this.scene.add.sprite(this.x, this.y, 'fireParticle');
                             p.setDepth(12);
                             p.setScale(pScale);
-                            p.setTint(pColor);
+                            p.setAlpha(0.54);
+                            p.setTint(0xf2efe2);
 
                             this.scene.physics.add.existing(p);
                             p.body.setVelocity(Math.cos(emitAngle) * pSpeed, Math.sin(emitAngle) * pSpeed);
@@ -171,7 +171,7 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                                 alpha: 0,
                                 scaleX: 0.05,
                                 scaleY: 0.05,
-                                duration: Phaser.Math.Between(140, 220),
+                                duration: Phaser.Math.Between(100, 160),
                                 onComplete: () => p.destroy()
                             });
                         }
@@ -369,9 +369,9 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                     const prev = this.trailPoints[i - 1];
                     const curr = this.trailPoints[i];
                     const alpha = i / this.trailPoints.length;
-                    this.trailGraphics.lineStyle(8 * alpha, 0x16110c, 0.16 * alpha);
+                    this.trailGraphics.lineStyle(11 * alpha, 0x16110c, 0.18 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
-                    this.trailGraphics.lineStyle(3.2 * alpha, 0xf2e6c9, 0.70 * alpha);
+                    this.trailGraphics.lineStyle(4.8 * alpha, 0xf2e6c9, 0.82 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
                 }
                 const travelAngle = Math.atan2(this.body.velocity.y, this.body.velocity.x);

@@ -64,10 +64,11 @@ export class CharacterPresentationSystem {
         this.magicEffects = this.scene.add.graphics();
         this.magicEffects.setDepth(9);
 
-        // 6. 血焰修女专属：底盘高亮魔法光环
+        // 6. 血焰修女专属：底盘光环，默认关闭，避免手机端读成主角身后的脏残影。
         if (this.roleKey === 'nun') {
             this.halo = this.scene.add.graphics();
             this.halo.setDepth(9); // 位于人物下方
+            this.halo.setVisible(false);
         }
 
         // 7. 主角专属：高可读性背光微芒 (Backlight Glow)，使角色剪影从暗黑战场及魔物堆叠中完美脱颖而出
@@ -294,38 +295,8 @@ export class CharacterPresentationSystem {
                 this.player.play('player_run_anim', true);
             }
 
-            // 行走脚底尘埃/修女冷色圣辉：低频、短生命周期，避免跑动时形成廉价拖影。
-            if (isNun && time >= this.nextFootstepFxAt && this.scene.fireParticles) {
-                this.nextFootstepFxAt = time + 95;
-                const speed = Math.sqrt(speedSq);
-                const dx = -vx / speed;
-                const dy = -vy / speed;
-                const emitX = this.player.x + dx * 5 + Phaser.Math.Between(-2, 2);
-                const emitY = this.player.y + 34 + dy * 2 + Phaser.Math.Between(-2, 2);
-                const pColor = Math.random() > 0.5 ? 0xf2e8d6 : 0xbeb5a8;
-
-                const p = this.scene.add.sprite(emitX, emitY, 'fireParticle');
-                p.setDepth(9); 
-                p.setAlpha(0.52);
-                p.setScale(Phaser.Math.FloatBetween(0.22, 0.42));
-                p.setTint(pColor);
-
-                this.scene.physics.add.existing(p);
-                p.body.setVelocity(
-                    dx * Phaser.Math.FloatBetween(22, 48) + Phaser.Math.FloatBetween(-8, 8),
-                    dy * Phaser.Math.FloatBetween(22, 48) + Phaser.Math.FloatBetween(-8, 8)
-                );
-                p.body.setDrag(220);
-
-                this.scene.tweens.add({
-                    targets: p,
-                    alpha: 0,
-                    scaleX: 0.05,
-                    scaleY: 0.05,
-                    duration: Phaser.Math.Between(180, 280),
-                    onComplete: () => p.destroy()
-                });
-            } else if (!isNun) {
+            // 修女移动不再散落脚底粒子，手机端优先保持主角轮廓干净。
+            if (!isNun) {
                 const particleInterval = 12;
                 if (time % particleInterval === 0 && this.scene.fireParticles) {
                     this.scene.fireParticles.emitParticleAt(this.player.x, this.player.y + 36, 1, this.themeColor);
@@ -358,10 +329,7 @@ export class CharacterPresentationSystem {
                 }
             }
 
-            // 修女待机时脚底偶尔浮现微弱骨白火星
-            if (isNun && time % 35 === 0 && this.scene.fireParticles) {
-                this.scene.fireParticles.emitParticleAt(this.player.x + Phaser.Math.Between(-10, 10), this.player.y + 36, 1, 0xece5d8);
-            }
+            // 修女待机不再生成脚底火星，避免近身截图出现碎片残影。
         }
 
         // G. 血焰修女专属：连结“修女身体”与“浮空法器核心”的魔能等离子焰链 (Tether) - 缩细至 1.0 像素细纹，降低透明度
@@ -393,14 +361,14 @@ export class CharacterPresentationSystem {
             }
         }
 
-        if (this.combatGlowUntil > time && this.magicEffects && this.player.visible) {
+        if (!isNun && this.combatGlowUntil > time && this.magicEffects && this.player.visible) {
             const progress = Phaser.Math.Clamp((this.combatGlowUntil - time) / 180, 0, 1);
             this.magicEffects.lineStyle(1.5, this.themeColor, progress * 0.18);
             this.magicEffects.strokeCircle(this.player.x, this.player.y - 6, 24 + (1 - progress) * 12);
         }
 
         // H. 血焰修女专属：底盘魔法光环实时绘制 - 降权为暗黑色调地毯图章，不干扰肢体轮廓
-        if (this.halo && this.halo.active && this.roleKey === 'nun') {
+        if (this.halo && this.halo.active && this.halo.visible && this.roleKey === 'nun') {
             this.halo.clear();
             if (this.player.visible) {
                 const hx = this.player.x;
@@ -771,51 +739,35 @@ export class CharacterPresentationSystem {
                 });
             }
 
-            // 2. 绘制脚底收缩的同心法阵环
-            const chargeRing = this.scene.add.graphics();
-            chargeRing.setDepth(9);
+            // 2. 只保留法器顶端聚能，不再在脚底绘制同心法阵，避免手机端读成背后残影。
             const chargeGlow = this.scene.add.graphics();
             chargeGlow.setDepth(12);
 
-            const cleanChargeRing = () => { if (chargeRing && chargeRing.destroy) chargeRing.destroy(); };
             const cleanChargeGlow = () => { if (chargeGlow && chargeGlow.destroy) chargeGlow.destroy(); };
-            this.scene.events.once('shutdown', cleanChargeRing);
-            this.scene.events.once('destroy', cleanChargeRing);
             this.scene.events.once('shutdown', cleanChargeGlow);
             this.scene.events.once('destroy', cleanChargeGlow);
 
             this.scene.tweens.add({
-                targets: chargeRing,
-                alpha: { start: 0.8, to: 0.2 },
+                targets: chargeGlow,
+                alpha: { start: 0.9, to: 0.35 },
                 duration: 120,
                 onUpdate: (tw) => {
-                    if (chargeRing.active) {
-                        chargeRing.clear();
-                        const radius = 30 * (1.0 - tw.progress) + 8;
-                        chargeRing.lineStyle(2.0, 0xff1a1a, 0.7);
-                        chargeRing.strokeCircle(this.player.x, this.player.y + 36, radius);
-                        chargeRing.lineStyle(1.0, 0xffaa00, 0.9);
-                        chargeRing.strokeCircle(this.player.x, this.player.y + 36, radius * 0.6);
-                    }
                     if (chargeGlow.active) {
                         chargeGlow.clear();
                         const curTipX = this.weapon?.active ? this.weapon.x + Math.sin(Phaser.Math.DegToRad(this.weapon.angle)) * 72 : tipX;
                         const curTipY = this.weapon?.active ? this.weapon.y - Math.cos(Phaser.Math.DegToRad(this.weapon.angle)) * 72 : tipY;
-                        const size = 18 * (1.0 - tw.progress) + 4;
-                        chargeGlow.fillStyle(0xffaa00, 0.8 * (1.0 - tw.progress));
+                        const size = 22 * (1.0 - tw.progress) + 6;
+                        chargeGlow.fillStyle(0xf6ead6, 0.84 * (1.0 - tw.progress));
                         chargeGlow.fillCircle(curTipX, curTipY, size);
-                        chargeGlow.lineStyle(1.5, 0xff1a1a, 0.9);
+                        chargeGlow.lineStyle(2.0, 0xffc24a, 0.92);
                         chargeGlow.strokeCircle(curTipX, curTipY, size * 0.7);
                     }
                 },
                 onComplete: () => {
                     if (this.scene) {
-                        this.scene.events.off('shutdown', cleanChargeRing);
-                        this.scene.events.off('destroy', cleanChargeRing);
                         this.scene.events.off('shutdown', cleanChargeGlow);
                         this.scene.events.off('destroy', cleanChargeGlow);
                     }
-                    chargeRing.destroy();
                     chargeGlow.destroy();
                 }
             });
@@ -932,13 +884,18 @@ export class CharacterPresentationSystem {
     }
 
     getSpellMuzzlePoint(fallbackAngle = 0, distance = 34) {
-        const shootAngle = this.targetAttackAngle !== undefined ? this.targetAttackAngle : fallbackAngle;
-        const baseX = this.weapon?.active ? this.weapon.x : this.player.x;
-        const baseY = this.weapon?.active ? this.weapon.y : this.player.y - 10;
+        if (this.weapon?.active) {
+            const weaponAngle = Phaser.Math.DegToRad(this.weapon.angle);
+            return {
+                x: this.weapon.x + Math.sin(weaponAngle) * distance,
+                y: this.weapon.y - Math.cos(weaponAngle) * distance
+            };
+        }
 
+        const shootAngle = this.targetAttackAngle !== undefined ? this.targetAttackAngle : fallbackAngle;
         return {
-            x: baseX + Math.cos(shootAngle) * distance,
-            y: baseY + Math.sin(shootAngle) * distance
+            x: this.player.x + Math.cos(shootAngle) * distance,
+            y: this.player.y - 10 + Math.sin(shootAngle) * distance
         };
     }
 
@@ -949,11 +906,42 @@ export class CharacterPresentationSystem {
         if (!this.weapon || !this.weapon.active) return;
 
         // 计算权杖顶端聚能点的绝对屏幕坐标 (翻倍以匹配大权杖)
-        const tip = this.getSpellMuzzlePoint(angle, 34);
+        const tip = this.getSpellMuzzlePoint(angle, 62);
         const tipX = tip.x;
         const tipY = tip.y;
 
-        // 1. 枪口大爆点法阵 (快速扩散并淡出，包含高能十字星芒与中心白热核)
+        // 1. 枪口方向圣焰短束，明确告诉玩家法术来自手杖顶端。
+        const muzzleBeam = this.scene.add.graphics();
+        muzzleBeam.setDepth(12);
+        const beamEndX = tipX + Math.cos(angle) * 48;
+        const beamEndY = tipY + Math.sin(angle) * 48;
+        muzzleBeam.lineStyle(7.0, 0x2b1308, 0.35);
+        muzzleBeam.lineBetween(tipX, tipY, beamEndX, beamEndY);
+        muzzleBeam.lineStyle(3.5, 0xf6ead6, 0.92);
+        muzzleBeam.lineBetween(tipX, tipY, beamEndX, beamEndY);
+        muzzleBeam.lineStyle(1.4, 0xffc24a, 1.0);
+        muzzleBeam.lineBetween(tipX, tipY, beamEndX, beamEndY);
+
+        const cleanMuzzleBeam = () => {
+            if (muzzleBeam && muzzleBeam.destroy) muzzleBeam.destroy();
+        };
+        this.scene.events.once('shutdown', cleanMuzzleBeam);
+        this.scene.events.once('destroy', cleanMuzzleBeam);
+        this.scene.tweens.add({
+            targets: muzzleBeam,
+            alpha: 0,
+            duration: 150,
+            ease: 'Quad.easeOut',
+            onComplete: () => {
+                if (this.scene) {
+                    this.scene.events.off('shutdown', cleanMuzzleBeam);
+                    this.scene.events.off('destroy', cleanMuzzleBeam);
+                }
+                muzzleBeam.destroy();
+            }
+        });
+
+        // 2. 枪口爆点法阵 (快速扩散并淡出，包含高能十字星芒与中心白热核)
         const muzzleRing = this.scene.add.graphics();
         muzzleRing.setPosition(tipX, tipY);
         muzzleRing.setDepth(12); // 高于所有实体和子弹层
@@ -986,10 +974,10 @@ export class CharacterPresentationSystem {
 
         this.scene.tweens.add({
             targets: muzzleRing,
-            scaleX: 5.0,
-            scaleY: 5.0,
+            scaleX: 2.8,
+            scaleY: 2.8,
             alpha: 0,
-            duration: 180,
+            duration: 160,
             ease: 'Quad.easeOut',
             onComplete: () => {
                 if (this.scene) {
@@ -1000,8 +988,8 @@ export class CharacterPresentationSystem {
             }
         });
 
-        // 2. 出手爆发粒子锥形喷出 (6 颗带物理速度阻尼的猩红金黄星芒)
-        for (let i = 0; i < 6; i++) {
+        // 3. 出手爆发粒子锥形喷出 (4 颗短寿命星芒)
+        for (let i = 0; i < 4; i++) {
             const pAngle = angle + Phaser.Math.FloatBetween(-0.4, 0.4);
             const pSpeed = Phaser.Math.FloatBetween(80, 160);
             const pScale = Phaser.Math.FloatBetween(0.5, 0.85);

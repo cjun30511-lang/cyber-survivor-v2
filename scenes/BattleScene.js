@@ -49,17 +49,15 @@ export class BattleScene extends Phaser.Scene {
         const mapTextures = this.getRunMapTextures();
         this.background = this.add.tileSprite(w / 2, h / 2, w, h, mapTextures.base)
             .setDepth(0)
-            .setAlpha(0.74)
-            .setTint(0x9f988e)
+            .setAlpha(1.0)
             .setScrollFactor(0)
-            .setTileScale(0.38); // 进一步压缩地砖视觉尺寸，让主角与怪物重新回到可读的世界尺度
+            .setTileScale(0.52); // 手机端需要看得出地图纹理，但不能让地砖抢走角色层级
         this.gridOverlay = this.add.tileSprite(w / 2, h / 2, w, h, mapTextures.overlay)
             .setDepth(1)
-            .setAlpha(0.24)
+            .setAlpha(0.18)
             .setBlendMode(Phaser.BlendModes.NORMAL)
-            .setTint(0x6f7f8f)
             .setScrollFactor(0)
-            .setTileScale(0.38); // 叠层纹理同步缩小，避免角色像贴在超大砖块上的纸片
+            .setTileScale(0.52); // 叠层纹理同步缩小，避免角色像贴在超大砖块上的纸片
 
         // 3. 静态血迹贴刻 RenderTexture 层 (零对象永久地表血溅)
         this.bloodLayer = this.add.renderTexture(0, 0, 3000, 3000).setDepth(2).setOrigin(0.5);
