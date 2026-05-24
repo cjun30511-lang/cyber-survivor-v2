@@ -2,8 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetUrl = process.env.GAME_URL || 'http://127.0.0.1:8000/cyber_exorcist_standalone.html';
-const artifactDir = '/Users/shenjun8676/.gemini/antigravity/brain/dae1de1e-74a6-46a7-944b-bdfb2b33c3a4';
+const targetUrl = process.env.GAME_URL || 'http://127.0.0.1:8000/cyber_exorcist_standalone.html?screenshot=true';
+const artifactDir = process.env.ARTIFACT_DIR || '/Users/shenjun8676/.gemini/antigravity/brain/dae1de1e-74a6-46a7-944b-bdfb2b33c3a4';
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -35,7 +35,7 @@ async function main() {
   console.log('🤖 Connecting to headless Chrome via CDP...');
   const wsUrl = await createFreshPageTarget('about:blank');
   console.log(`🔌 WS URL: ${wsUrl}`);
-  
+
   const ws = new WebSocket(wsUrl);
   let id = 0;
   const pending = new Map();
@@ -66,6 +66,13 @@ async function main() {
   // Enable CDP features
   await send('Page.enable');
   await send('Runtime.enable');
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 720,
+    height: 1280,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  await send('Emulation.setVisibleSize', { width: 720, height: 1280 });
 
   console.log(`🌐 Navigating to stand-alone client: ${targetUrl}`);
   await send('Page.navigate', { url: targetUrl });
@@ -83,7 +90,7 @@ async function main() {
 
   // Take Screenshot 2: Lobby Character Showcase Close-up (Cathedral Archway & Stats Codex Card area)
   console.log('📸 Capturing Screenshot 2: Lobby Altar & Stats Codex Card Close-up...');
-  const sc2 = await send('Page.captureScreenshot', { 
+  const sc2 = await send('Page.captureScreenshot', {
     format: 'png',
     clip: { x: 90, y: 275, width: 540, height: 680, scale: 1 }
   });
@@ -120,19 +127,19 @@ async function main() {
     expression: `(() => {
       const scene = window.game.scene.keys.BattleScene;
       if (!scene) return 'NO_BATTLE';
-      
+
       // Clear existing enemies
       scene.enemiesGroup.clear(true, true);
-      
+
       const px = scene.player.x;
       const py = scene.player.y;
-      
+
       const sk = new SkeletonMelee(scene, px + 120, py - 40);
       const gh = new GhostCaster(scene, px - 110, py + 30);
-      
+
       scene.enemiesGroup.add(sk);
       scene.enemiesGroup.add(gh);
-      
+
       // Freeze them in place for perfect screen captures
       scene.enemiesGroup.getChildren().forEach(enemy => {
         enemy.speed = 0;
@@ -140,7 +147,7 @@ async function main() {
         enemy.update = () => {};
         enemy.updateVisuals = () => {};
       });
-      
+
       return 'SPAWNED_SMALL';
     })()`,
     returnByValue: true
@@ -161,19 +168,19 @@ async function main() {
     expression: `(() => {
       const scene = window.game.scene.keys.BattleScene;
       if (!scene) return 'NO_BATTLE';
-      
+
       // Clear existing enemies
       scene.enemiesGroup.clear(true, true);
-      
+
       const px = scene.player.x;
       const py = scene.player.y;
-      
+
       const tk = new IronTank(scene, px + 180, py + 20);
       const bs = new BossDemon(scene, px, py - 180);
-      
+
       scene.enemiesGroup.add(tk);
       scene.enemiesGroup.add(bs);
-      
+
       // Freeze them in place
       scene.enemiesGroup.getChildren().forEach(enemy => {
         enemy.speed = 0;
@@ -181,7 +188,7 @@ async function main() {
         enemy.update = () => {};
         enemy.updateVisuals = () => {};
       });
-      
+
       return 'SPAWNED_HEAVY';
     })()`,
     returnByValue: true
@@ -202,13 +209,13 @@ async function main() {
     expression: `(() => {
       const scene = window.game.scene.keys.BattleScene;
       if (!scene) return 'NO_BATTLE';
-      
+
       // Clear existing enemies
       scene.enemiesGroup.clear(true, true);
-      
+
       const px = scene.player.x;
       const py = scene.player.y;
-      
+
       // 1. Spawning a high-density circle of small skeletons and ghosts
       for (let i = 0; i < 24; i++) {
         const angle = (i / 24) * Math.PI * 2;
@@ -226,7 +233,7 @@ async function main() {
         const gh = new GhostCaster(scene, ex, ey);
         scene.enemiesGroup.add(gh);
       }
-      
+
       // 2. Spawning 4 tanks in four diagonal directions
       const diagonals = [
         {dx: -220, dy: -220}, {dx: 220, dy: -220},
@@ -236,18 +243,22 @@ async function main() {
         const tk = new IronTank(scene, px + d.dx, py + d.dy);
         scene.enemiesGroup.add(tk);
       });
-      
+
       // 3. Spawning 1 Boss Demon at the top center
       const bs = new BossDemon(scene, px, py - 280);
       scene.enemiesGroup.add(bs);
-      
+
       // 4. Force player to trigger multiple projectile bursts (talisman + fireball) in different directions
       for (let i = 0; i < 12; i++) {
         const angle = (i / 12) * Math.PI * 2;
-        scene.skillSystem.spawnTalisman(scene.player, angle);
+        const speed = 450;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        const proj = new TalismanProjectile(scene, px, py - 10, vx, vy, angle, 20);
+        scene.skillSystem.projectilesGroup.add(proj);
         scene.fireParticles.emitParticleAt(px + Math.cos(angle)*60, py + Math.sin(angle)*60, 4);
       }
-      
+
       return 'SPAWNED_CHAOS';
     })()`,
     returnByValue: true

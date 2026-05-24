@@ -31,7 +31,7 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
         if (roleKey === 'exorcist') {
             const combo = scene.player ? (scene.player.exorcistCombo || 0) : 0;
             let heavySpeed = 220;
-            
+
             if (combo === 0) {
                 scale = 1.2;
                 damage = Math.floor(damage * 1.3);
@@ -45,7 +45,7 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                 scale = 1.75;
                 damage = Math.floor(damage * 2.2);
                 heavySpeed = 160; // 终极劈砍前行稍慢，体积浩大且可读
-                
+
                 // 3阶段重落劈斩：延迟 100ms 触发黄金爆散和镜头大地震
                 pendingAsyncEvents.push(scene.time.delayedCall(100, () => {
                     if (this.active && scene) {
@@ -56,7 +56,7 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                     }
                 }));
             }
-            
+
             vx = Math.cos(angle) * heavySpeed;
             vy = Math.sin(angle) * heavySpeed;
         }
@@ -69,27 +69,45 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
             vy = Math.sin(angle) * fastSpeed;
         }
 
+        const nunMagicVariants = ['a', 'b', 'c', 'd'];
+        const magicVariant = roleKey === 'nun'
+            ? Phaser.Utils.Array.GetRandom(nunMagicVariants)
+            : (roleKey === 'hunter' ? 'c' : (roleKey === 'necromancer' ? 'b' : 'a'));
+
         if (roleKey === 'nun') {
-            // 修女主攻击改成真正的远程火球。
-            texture = 'fireball';
-            scale = 0.9;
+            texture = `talisman_proj_${magicVariant}`;
+            scale = 0.52;
             const rangedSpeed = 640;
             vx = Math.cos(angle) * rangedSpeed;
             vy = Math.sin(angle) * rangedSpeed;
+        } else if (roleKey === 'necromancer') {
+            texture = 'talisman_proj_b';
+            scale = 0.72;
+        } else if (roleKey === 'hunter') {
+            texture = 'talisman_proj_c';
+            scale = 0.68;
         }
 
         super(scene, x, y, texture);
-        
+
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
+        // 播放高清 Variant 图集自旋/游走帧动画!
+        if (roleKey === 'nun' || roleKey === 'necromancer' || roleKey === 'hunter') {
+            this.play(`talisman_proj_${magicVariant}_anim`, true);
+        }
+
         this.damage = damage;
         this.setDepth(8);
-        this.setTint(tint);
+        if (roleKey !== 'nun') {
+            this.setTint(tint);
+        }
         this.setScale(scale);
-        this.setAlpha(0.98);
+        this.setAlpha(1);
         this.baseProjectileScale = scale;
         this.roleKey = roleKey;
+        this.magicVariant = magicVariant;
         this.themeColor = tint;
         this.trailPoints = [];
         this.trailGraphics = null;
@@ -105,14 +123,14 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
             this.pierceCount = 3;
             this.hitEnemies = new Set();
         }
-        
+
         // 骑士圣光斩需要和挥动轨迹方向垂直对齐以形成扇形挥击感
         if (roleKey === 'exorcist') {
             this.rotation = angle + Math.PI / 2;
         } else {
             this.rotation = angle;
         }
-        
+
         this.setVelocity(vx, vy);
 
         this.exploded = false;
@@ -122,38 +140,38 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
         // 产生飞行的专属流光拖尾 (Ghost/Mist/Spark Trail)
         const isExorcist = roleKey === 'exorcist';
         const isNun = roleKey === 'nun';
-        
+
         this.trailTimer = scene.time.addEvent({
-            delay: isNun ? 16 : (isExorcist ? 30 : 40),
+            delay: isNun ? 24 : (isExorcist ? 30 : 40),
             loop: true,
             callback: () => {
                 if (!this.active || !this.scene || !this.body) return;
                 if (this.scene.isTransitioningOut) return;
                 if (this.scene.fireParticles) {
                     if (isNun) {
-                        // 血焰修女专属：极其密集的双流光粒子，向后扇形抛洒，带阻尼 (短寿命180-260ms，快速释放回收)
+                        // 修女符箓拖尾：稀疏纸灰和骨白余光，避免低质橙色火星糊屏。
                         const travelAngle = Math.atan2(this.body.velocity.y, this.body.velocity.x);
-                        for (let k = 0; k < 2; k++) {
+                        for (let k = 0; k < 1; k++) {
                             const emitAngle = travelAngle + Math.PI + Phaser.Math.FloatBetween(-0.12, 0.12);
-                            const pSpeed = Phaser.Math.FloatBetween(50, 100);
-                            const pColor = Math.random() > 0.5 ? 0xffaa00 : 0xff1a1a;
-                            const pScale = Phaser.Math.FloatBetween(0.4, 0.7);
+                            const pSpeed = Phaser.Math.FloatBetween(36, 78);
+                            const pColor = Math.random() > 0.5 ? 0xf2efe2 : 0x7a1c1c;
+                            const pScale = Phaser.Math.FloatBetween(0.24, 0.42);
 
                             const p = this.scene.add.sprite(this.x, this.y, 'fireParticle');
                             p.setDepth(12);
                             p.setScale(pScale);
                             p.setTint(pColor);
-                            
+
                             this.scene.physics.add.existing(p);
                             p.body.setVelocity(Math.cos(emitAngle) * pSpeed, Math.sin(emitAngle) * pSpeed);
                             p.body.setDrag(150);
-                            
+
                             this.scene.tweens.add({
                                 targets: p,
                                 alpha: 0,
                                 scaleX: 0.05,
                                 scaleY: 0.05,
-                                duration: Phaser.Math.Between(180, 260),
+                                duration: Phaser.Math.Between(140, 220),
                                 onComplete: () => p.destroy()
                             });
                         }
@@ -165,17 +183,17 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                             const pSpeed = Phaser.Math.FloatBetween(40, 90);
                             const pX = this.x + Phaser.Math.FloatBetween(-12, 12);
                             const pY = this.y + Phaser.Math.FloatBetween(-12, 12);
-                            
+
                             const p = this.scene.add.sprite(pX, pY, 'fireParticle');
                             p.setDepth(12);
                             p.setScale(Phaser.Math.FloatBetween(0.4, 0.65));
                             p.setAlpha(Phaser.Math.FloatBetween(0.4, 0.7));
                             p.setTint(0xe5a93c); // 黄金
-                            
+
                             this.scene.physics.add.existing(p);
                             p.body.setVelocity(Math.cos(emitAngle) * pSpeed, Math.sin(emitAngle) * pSpeed);
                             p.body.setDrag(160);
-                            
+
                             this.scene.tweens.add({
                                 targets: p,
                                 alpha: 0,
@@ -215,43 +233,93 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
             this.scene.soundSynth.play('hit');
         }
         this.scene.cameras.main.shake(60, 0.0028);
-        const expG = this.scene.add.graphics();
-        expG.setDepth(11);
-        const shutdownListener = () => {
-            if (expG && expG.destroy) expG.destroy();
-        };
-        this.scene.events.once('shutdown', shutdownListener);
-        this.scene.events.once('destroy', shutdownListener);
-        const maxRadius = 86;
-        this.scene.tweens.add({
-            targets: expG,
-            alpha: 0,
-            duration: 260,
-            onUpdate: (tween) => {
-                if (!expG.active) return;
-                const progress = tween.progress;
-                expG.clear();
 
-                expG.fillStyle(0xff2a00, (1 - progress) * 0.48);
-                expG.fillCircle(tx, ty, maxRadius * progress);
-                expG.lineStyle(5.5, 0xff1a1a, 1 - progress);
-                expG.strokeCircle(tx, ty, maxRadius * progress);
-                expG.lineStyle(3.2, 0xffcc66, 0.9 - progress * 0.7);
-                expG.strokeCircle(tx, ty, maxRadius * 0.62 * progress);
-                expG.fillStyle(0xffffff, Math.max(0, 0.95 - progress * 1.15));
-                expG.fillCircle(tx, ty, 28 * (1 - progress * 0.7));
-            },
-            onComplete: () => {
+        // 播放高清 Variant 爆炸/撞击序列帧动画!
+        let impKey = null;
+        let impTexture = null;
+        if (this.roleKey === 'nun') {
+            impKey = `talisman_imp_${this.magicVariant}_anim`;
+            impTexture = `talisman_imp_${this.magicVariant}`;
+        } else if (this.roleKey === 'necromancer') {
+            impKey = 'talisman_imp_b_anim';
+            impTexture = 'talisman_imp_b';
+        } else if (this.roleKey === 'hunter') {
+            impKey = 'talisman_imp_c_anim';
+            impTexture = 'talisman_imp_c';
+        }
+
+        if (impKey && impTexture) {
+            const impSprite = this.scene.add.sprite(tx, ty, impTexture);
+            impSprite.setDepth(11);
+            impSprite.setScale(0.60);
+            impSprite.setAlpha(0.92);
+
+            // 注册切场安全清理机制
+            const cleanImp = () => { if (impSprite && impSprite.destroy) impSprite.destroy(); };
+            this.scene.events.once('shutdown', cleanImp);
+            this.scene.events.once('destroy', cleanImp);
+
+            impSprite.play(impKey, true);
+            impSprite.once('animationcomplete-' + impKey, () => {
                 if (this.scene) {
-                    this.scene.events.off('shutdown', shutdownListener);
-                    this.scene.events.off('destroy', shutdownListener);
+                    this.scene.events.off('shutdown', cleanImp);
+                    this.scene.events.off('destroy', cleanImp);
                 }
-                expG.destroy();
-            }
-        });
+                impSprite.destroy();
+            });
+        } else {
+            // Fallback impact: use broken slashes/debris instead of circular disks.
+            const expG = this.scene.add.graphics();
+            expG.setDepth(11);
+            const shutdownListener = () => {
+                if (expG && expG.destroy) expG.destroy();
+            };
+            this.scene.events.once('shutdown', shutdownListener);
+            this.scene.events.once('destroy', shutdownListener);
+            const shardAngles = [-0.9, -0.42, 0.08, 0.55, 1.02, 1.64, 2.35, 2.86];
+            this.scene.tweens.add({
+                targets: expG,
+                alpha: 0,
+                duration: 260,
+                onUpdate: (tween) => {
+                    if (!expG.active) return;
+                    const progress = tween.progress;
+                    expG.clear();
+
+                    const fade = 1 - progress;
+                    const spread = 18 + 54 * progress;
+                    expG.lineStyle(5.5, 0xf2efe2, 0.9 * fade);
+                    expG.lineBetween(tx - 18 * fade, ty - 4, tx + 22 * fade, ty + 5);
+                    expG.lineStyle(3.2, 0x9a1f1f, 0.7 * fade);
+                    expG.lineBetween(tx - 6, ty - 18 * fade, tx + 8, ty + 19 * fade);
+
+                    shardAngles.forEach((angle, index) => {
+                        const dist = spread + (index % 3) * 7;
+                        const x = tx + Math.cos(angle) * dist;
+                        const y = ty + Math.sin(angle) * dist;
+                        const len = 8 + (index % 2) * 5;
+                        expG.lineStyle(index % 2 ? 2.5 : 1.8, index % 2 ? 0xd9c38a : 0xd7d7d2, 0.75 * fade);
+                        expG.lineBetween(
+                            x - Math.cos(angle) * len,
+                            y - Math.sin(angle) * len,
+                            x + Math.cos(angle) * len,
+                            y + Math.sin(angle) * len
+                        );
+                    });
+                },
+                onComplete: () => {
+                    if (this.scene) {
+                        this.scene.events.off('shutdown', shutdownListener);
+                        this.scene.events.off('destroy', shutdownListener);
+                    }
+                    expG.destroy();
+                }
+            });
+        }
+
         if (this.scene.fireParticles) {
-            for (let i = 0; i < 20; i++) {
-                this.scene.fireParticles.emitParticleAt(tx, ty, 1, Math.random() > 0.5 ? 0xff1a1a : 0xffaa00);
+            for (let i = 0; i < 5; i++) {
+                this.scene.fireParticles.emitParticleAt(tx, ty, 1, Math.random() > 0.5 ? 0xf2efe2 : 0x8a1c1c);
             }
         }
     }
@@ -301,26 +369,36 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
                     const prev = this.trailPoints[i - 1];
                     const curr = this.trailPoints[i];
                     const alpha = i / this.trailPoints.length;
-                    this.trailGraphics.lineStyle(7 * alpha, 0x3a1208, 0.18 * alpha);
+                    this.trailGraphics.lineStyle(8 * alpha, 0x16110c, 0.16 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
-                    this.trailGraphics.lineStyle(2.8 * alpha, 0xf0b35d, 0.62 * alpha);
+                    this.trailGraphics.lineStyle(3.2 * alpha, 0xf2e6c9, 0.70 * alpha);
                     this.trailGraphics.lineBetween(prev.x, prev.y, curr.x, curr.y);
                 }
-                this.trailGraphics.fillStyle(0xff6a22, 0.16);
-                this.trailGraphics.fillCircle(this.x, this.y, 13);
-                this.trailGraphics.fillStyle(0xfff0c2, 0.2);
-                this.trailGraphics.fillCircle(this.x - 3, this.y - 3, 4);
+                const travelAngle = Math.atan2(this.body.velocity.y, this.body.velocity.x);
+                const tailAngle = travelAngle + Math.PI;
+                const sideAngle = travelAngle + Math.PI / 2;
+                const tail = 18;
+                const side = 5;
+                this.trailGraphics.fillStyle(0xf2e6c9, 0.24);
+                this.trailGraphics.fillTriangle(
+                    this.x + Math.cos(sideAngle) * side,
+                    this.y + Math.sin(sideAngle) * side,
+                    this.x + Math.cos(tailAngle) * tail,
+                    this.y + Math.sin(tailAngle) * tail,
+                    this.x - Math.cos(sideAngle) * side,
+                    this.y - Math.sin(sideAngle) * side
+                );
             }
 
-            if (this.scene.fireParticles && time % 5 === 0) {
-                this.scene.fireParticles.emitParticleAt(this.x, this.y, 1, Math.random() > 0.5 ? 0xffaa00 : 0xff3300);
+            if (this.scene.fireParticles && Math.random() < 0.12) {
+                this.scene.fireParticles.emitParticleAt(this.x, this.y, 1, Math.random() > 0.5 ? 0xf2efe2 : 0x7a1c1c);
             }
         }
 
         if (this.active && this.body && !this.scene?.isTransitioningOut && this.roleKey === 'necromancer') {
             let nearest = null;
             let minDist = 450; // 索敌半径 450 像素
-            
+
             if (this.scene && this.scene.enemiesGroup) {
                 this.scene.enemiesGroup.getChildren().forEach(enemy => {
                     if (enemy.active) {
@@ -335,10 +413,10 @@ export class TalismanProjectile extends Phaser.Physics.Arcade.Sprite {
 
             if (nearest) {
                 const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, nearest.x, nearest.y);
-                
+
                 // 角度平滑弧形插值 (每帧限偏转 0.08 弧度)
                 this.rotation = Phaser.Math.Angle.RotateTo(this.rotation, targetAngle, 0.08);
-                
+
                 // 依据新角度重设速度
                 const missileSpeed = 380;
                 this.body.setVelocity(
@@ -376,23 +454,30 @@ export class FireballProjectile extends Phaser.Physics.Arcade.Sprite {
      * @param {number} ty 目标点Y
      * @param {number} damage 爆炸伤害值
      * @param {number} radius 爆炸判定半径
+     * @param {number} level 玄火技能等级
      */
-    constructor(scene, tx, ty, damage, radius) {
-        super(scene, tx, ty, 'casterBullet');
-        
+    constructor(scene, tx, ty, damage, radius, level = 1) {
+        let texture = 'fireball_unlock';
+        if (level === 2) texture = 'fireball_lv2';
+        else if (level === 3) texture = 'fireball_lv3';
+        else if (level >= 4) texture = 'fireball_lv4_ultimate';
+
+        super(scene, tx, ty, texture);
+
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
         this.damage = damage;
         this.radius = radius;
-        this.setDepth(4); // 处于地表
-        
+        this.level = level;
+        this.setDepth(11); // 升级至战斗上层，高能曝光
+
         this.setVisible(false);
         this.body.setEnable(false); // 蓄力期间没有伤害碰撞
         this.asyncEvents = [];
         this.destroyed = false;
 
-        // 1. 绘制蓄力法阵提示
+        // 1. 绘制蓄力法阵提示 (哥特猩红收缩法阵)
         const targetRing = scene.add.graphics();
         targetRing.lineStyle(2, 0xff5500, 0.4);
         targetRing.strokeCircle(tx, ty, radius);
@@ -400,7 +485,6 @@ export class FireballProjectile extends Phaser.Physics.Arcade.Sprite {
         targetRing.fillCircle(tx, ty, 5);
         targetRing.setDepth(3);
 
-        // 统一注册场景销毁/切场清理机制，杜绝孤儿/残留 Graphics
         const cleanTargetRing = () => {
             if (targetRing && targetRing.destroy) targetRing.destroy();
         };
@@ -413,7 +497,7 @@ export class FireballProjectile extends Phaser.Physics.Arcade.Sprite {
             alpha: { start: 0.2, to: 0.9 },
             scaleX: { start: 1.5, to: 1.0 },
             scaleY: { start: 1.5, to: 1.0 },
-            x: tx * (1 - 1/1.5), // 校准缩放位移
+            x: tx * (1 - 1/1.5),
             y: ty * (1 - 1/1.5),
             duration: 350,
             onComplete: () => {
@@ -441,101 +525,41 @@ export class FireballProjectile extends Phaser.Physics.Arcade.Sprite {
         const bodyDiameter = this.radius * 2;
         this.setBodySize(bodyDiameter, bodyDiameter, true);
         this.setCircle(this.radius);
-        
-        // 瞬间将材质染成炫目红火
-        this.setTint(0xff1a1a);
-        this.setScale(0.2); // 从极小瞬间爆开
+
+        // 瞬间将材质染成炫目红火并设置正确尺寸
+        this.setTint(0xff3300);
+        const targetScale = (this.radius * 2.2) / 384;
+        this.setScale(0.1);
 
         // 播放爆炸 Web Audio 音效
         if (this.scene.soundSynth) {
             this.scene.soundSynth.play('hit');
         }
 
-        // 2. 绘制双层血色魔纹法阵与三道渐隐冲击波
-        const explodeCircle = this.scene.add.graphics();
-        explodeCircle.setDepth(5);
-        
-        // 绘制双层血红法阵印记
-        explodeCircle.lineStyle(3, 0xff1a1a, 0.85);
-        explodeCircle.strokeCircle(tx, ty, this.radius);
-        explodeCircle.lineStyle(1.5, 0xff5500, 0.65);
-        explodeCircle.strokeCircle(tx, ty, this.radius * 0.7);
-        
-        // 画个象征性的八角星或十字魔纹在里面
-        explodeCircle.beginPath();
-        for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI) / 4;
-            const rx = tx + Math.cos(angle) * this.radius;
-            const ry = ty + Math.sin(angle) * this.radius;
-            explodeCircle.moveTo(tx, ty);
-            explodeCircle.lineTo(rx, ry);
-        }
-        explodeCircle.strokePath();
-        
-        // 统一注册场景销毁/切场清理机制，杜绝孤儿/残留 Graphics
-        const cleanExplodeCircle = () => {
-            if (explodeCircle && explodeCircle.destroy) explodeCircle.destroy();
-        };
-        this.scene.events.once('shutdown', cleanExplodeCircle);
-        this.scene.events.once('destroy', cleanExplodeCircle);
+        // 播放专属升级序列帧动画
+        const animKey = this.level === 2 ? 'fireball_lv2_anim' : (this.level === 3 ? 'fireball_lv3_anim' : (this.level >= 4 ? 'fireball_lv4_ultimate_anim' : 'fireball_unlock_anim'));
+        this.play(animKey, true);
 
-        // 让这个法阵微弱旋转并淡出
+        // 极速向外扩张动效
         this.scene.tweens.add({
-            targets: explodeCircle,
-            alpha: 0,
-            angle: 45, // 旋转45度
-            duration: 350,
-            onComplete: () => {
-                if (this.scene) {
-                    this.scene.events.off('shutdown', cleanExplodeCircle);
-                    this.scene.events.off('destroy', cleanExplodeCircle);
-                }
-                explodeCircle.destroy();
-            }
+            targets: this,
+            scaleX: targetScale,
+            scaleY: targetScale,
+            duration: 150,
+            ease: 'Quad.easeOut'
         });
-
-        // 产生 3 道迅速向外扩散的余震波环
-        for (let r = 1; r <= 3; r++) {
-            const shockwave = this.scene.add.graphics();
-            shockwave.setDepth(5);
-            shockwave.lineStyle(2.5, 0xff3300, 0.95);
-            shockwave.strokeCircle(tx, ty, this.radius * 0.2);
-            
-            // 统一注册场景销毁/切场清理机制，杜绝孤儿/残留 Graphics
-            const cleanShockwave = () => {
-                if (shockwave && shockwave.destroy) shockwave.destroy();
-            };
-            this.scene.events.once('shutdown', cleanShockwave);
-            this.scene.events.once('destroy', cleanShockwave);
-
-            this.scene.tweens.add({
-                targets: shockwave,
-                scaleX: 2.2 + r * 0.5,
-                scaleY: 2.2 + r * 0.5,
-                alpha: 0,
-                x: tx * (1 - (2.2 + r * 0.5)), // 修正缩放中心
-                y: ty * (1 - (2.2 + r * 0.5)),
-                duration: 200 + r * 100, // 逐个淡出
-                onComplete: () => {
-                    if (this.scene) {
-                        this.scene.events.off('shutdown', cleanShockwave);
-                        this.scene.events.off('destroy', cleanShockwave);
-                    }
-                    shockwave.destroy();
-                }
-            });
-        }
 
         // 喷发 15 个猩红/橙色火花粒子
         if (this.scene.fireParticles) {
-            this.scene.fireParticles.emitParticleAt(tx, ty, 15, 0xff3300);
+            this.scene.fireParticles.emitParticleAt(tx, ty, 18, 0xff3300);
         }
 
-        // 4. 0.15秒后伤害帧结束，销毁投射物
-        this.asyncEvents = this.asyncEvents || [];
-        this.asyncEvents.push(this.scene.time.delayedCall(150, () => {
-            if (this.active && !this.destroyed) this.destroy();
-        }));
+        // 动画播放完成后，完美销毁
+        this.once('animationcomplete-' + animKey, () => {
+            if (this.active && !this.destroyed) {
+                this.destroy();
+            }
+        });
     }
 
     preDestroy() {
@@ -561,33 +585,44 @@ export class ShieldProjectile extends Phaser.Physics.Arcade.Sprite {
      * @param {number} damage 接触每跳伤害
      */
     constructor(scene, player, index, totalActive, distance, damage) {
-        super(scene, player.x, player.y, 'shield');
-        
+        // totalActive corresponds to shield count which is equal to current shield level (1, 2, 3, 4)
+        const level = totalActive || 1;
+        let texture = 'shield_unlock_loop';
+        if (level === 2) texture = 'shield_lv2_loop';
+        else if (level === 3) texture = 'shield_lv3_loop';
+        else if (level >= 4) texture = 'shield_lv4_loop';
+
+        super(scene, player.x, player.y, texture);
+
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
         this.player = player;
         this.index = index;
         this.totalActive = totalActive;
         this.distance = distance;
         this.damage = damage;
-        
+
         this.setDepth(9);
-        
+
         // 根据角色契约主题给自旋法环染色
         const roleKey = (GameState.run && GameState.run.roleId) || GameState.meta.selectedRole || 'nun';
         const roleCfg = RolePresentationConfig.roles[roleKey];
         this.themeColor = roleCfg ? roleCfg.themeColor : 0xe5a93c;
         this.setTint(this.themeColor);
-        
-        // 适当调整力场贴图大小
-        this.setScale(0.18);
-        
+
+        // 适当调整力场贴图大小 (从384x384等比例缩放至适宜大小)
+        this.setScale(0.24);
+
+        // 播放高精度循环发光法阵动画
+        const animKey = level === 2 ? 'shield_lv2_loop_anim' : (level === 3 ? 'shield_lv3_loop_anim' : (level >= 4 ? 'shield_lv4_loop_anim' : 'shield_unlock_loop_anim'));
+        this.play(animKey, true);
+
         // 记录对不同怪物的独立伤害 Tick CD，防单帧超高额秒杀
         this.damagedEnemiesCooldown = new Map(); // Map<enemyId -> timestamp>
 
         // 物理包围盒缩小
-        this.setCircle(35);
+        this.setCircle(38);
     }
 
     /**

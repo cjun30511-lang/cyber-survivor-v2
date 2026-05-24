@@ -7,6 +7,8 @@ import { SkeletonMelee } from '../entities/SkeletonMelee.js';
 import { GhostCaster } from '../entities/GhostCaster.js';
 import { IronTank } from '../entities/IronTank.js';
 import { BossDemon } from '../entities/BossDemon.js';
+import { Enemy } from '../entities/Enemy.js';
+import { EnemyConfig } from '../config/EnemyConfig.js';
 import { GameState } from '../state/GameState.js';
 
 export class SpawnSystem {
@@ -18,7 +20,7 @@ export class SpawnSystem {
         this.destroyed = false;
         this.activeTweens = new Set();
         this.spawnInterval = WaveConfig.spawnInterval || 1200;
-        
+
         // 标记首领是否已经生成过，防止高频重复产生
         this.bossSpawned = false;
 
@@ -121,6 +123,13 @@ export class SpawnSystem {
             case 'tank':
                 enemyInstance = new IronTank(this.scene, spawnX, spawnY);
                 break;
+            default: {
+                const config = EnemyConfig[enemyKey];
+                if (config) {
+                    enemyInstance = new Enemy(this.scene, spawnX, spawnY, config.texture, enemyKey);
+                }
+                break;
+            }
         }
 
         if (enemyInstance) {
@@ -132,9 +141,14 @@ export class SpawnSystem {
      * 根据权重字典，以加权轮盘赌算法随机产出怪物种类
      */
     chooseWeightedEnemy(weights) {
-        const rand = Math.random();
+        const entries = Object.entries(weights || {})
+            .filter(([key, val]) => EnemyConfig[key] && !EnemyConfig[key].isBoss && val > 0);
+        if (!entries.length) return 'skeleton';
+
+        const totalWeight = entries.reduce((sum, [, val]) => sum + val, 0);
+        const rand = Math.random() * totalWeight;
         let cumulative = 0;
-        for (let [key, val] of Object.entries(weights)) {
+        for (let [key, val] of entries) {
             cumulative += val;
             if (rand < cumulative) return key;
         }
@@ -186,10 +200,13 @@ export class SpawnSystem {
                 }
                 ritualCircle.destroy();
                 darkenOverlay.destroy();
-                
+
                 // 3. 产生震屏与 Boss 实体
                 this.scene.cameras.main.shake(200, 0.015);
-                const boss = new BossDemon(this.scene, bx, by);
+                const pool = (WaveConfig.bossPool || ['boss']).filter(key => EnemyConfig[key]?.isBoss);
+                const bossIndex = GameState.run?.mapIndex ?? 0;
+                const bossKey = pool[bossIndex % pool.length] || 'boss';
+                const boss = new BossDemon(this.scene, bx, by, bossKey);
                 this.scene.enemiesGroup.add(boss);
 
                 // 播放 Boss 出场警告气浪

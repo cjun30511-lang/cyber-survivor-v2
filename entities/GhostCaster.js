@@ -14,7 +14,7 @@ export class GhostCaster extends Enemy {
      */
     constructor(scene, x, y) {
         super(scene, x, y, 'ghost_caster', 'ghost');
-        
+
         // 独有参数
         this.lastShootTime = 0;
         this.shootCooldown = EnemyConfig.ghost.shootCooldown || 3000;
@@ -72,7 +72,7 @@ export class GhostCaster extends Enemy {
                 Math.cos(moveAngle) * this.speed * (isCasting ? 0.08 : 0.28),
                 Math.sin(moveAngle) * this.speed * (isCasting ? 0.08 : 0.28)
             );
-            
+
             // 吟唱时间判定
             if (time - this.lastShootTime > this.shootCooldown) {
                 this.lastShootTime = time;
@@ -94,47 +94,47 @@ export class GhostCaster extends Enemy {
      * 发射魔法弹
      */
     shootBullet(player) {
-        if (!this.scene || !this.scene.casterBullets || this.scene.isTransitioningOut) return;
+        if (!this.scene || !this.scene.casterBullets || this.scene.isTransitioningOut || this.hp <= 0) return;
+
+        // 播放施法动画
+        this.play('ghost_cast_anim', true);
 
         // 瞬间高闪蓄力
         this.setTintFill(0x00ffff);
-        this.scene.tweens.add({
-            targets: this,
-            scaleX: this.baseScale * 0.82,
-            scaleY: this.baseScale * 1.28,
-            duration: 110,
-            yoyo: true,
-            ease: 'Sine.easeInOut'
-        });
         this.asyncEvents.push(this.scene.time.delayedCall(120, () => {
-            if (this.active && !this.scene?.isTransitioningOut) this.clearTint();
+            if (this.active && this.hp > 0 && !this.scene?.isTransitioningOut) this.clearTint();
         }));
 
-        // 创建魔法弹
-        const bullet = this.scene.physics.add.sprite(this.x, this.y, 'casterBullet');
-        bullet.setDepth(8);
-        
-        // 魔法弹拖尾微粒子与发光
-        bullet.setTint(0x00ffff);
-        bullet.setScale(0.85);
+        // 在第 3 帧左右 (也就是 300ms) 释放弹道，完美匹配施法节奏
+        this.asyncEvents.push(this.scene.time.delayedCall(300, () => {
+            if (!this.active || !this.scene || this.scene.isTransitioningOut || this.hp <= 0) return;
 
-        this.scene.casterBullets.add(bullet);
+            // 创建魔法弹
+            const bullet = this.scene.physics.add.sprite(this.x, this.y, 'casterBullet');
+            bullet.setDepth(8);
 
-        // 指向玩家的速度向量
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-        bullet.setVelocity(Math.cos(angle) * this.bulletSpeed, Math.sin(angle) * this.bulletSpeed);
-        bullet.rotation = angle;
+            // 魔法弹拖尾微粒子与发光
+            bullet.setTint(0x00ffff);
+            bullet.setScale(0.85);
 
-        // 粒子辅助
-        if (this.scene.fireParticles) {
-            this.scene.fireParticles.emitParticleAt(this.x, this.y, 4);
-        }
+            this.scene.casterBullets.add(bullet);
 
-        // 5秒后自动回收，防止内存溢出
-        this.asyncEvents.push(this.scene.time.delayedCall(5000, () => {
-            if (bullet && bullet.active) {
-                bullet.destroy();
+            // 指向玩家的速度向量
+            const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
+            bullet.setVelocity(Math.cos(angle) * this.bulletSpeed, Math.sin(angle) * this.bulletSpeed);
+            bullet.rotation = angle;
+
+            // 粒子辅助
+            if (this.scene.fireParticles) {
+                this.scene.fireParticles.emitParticleAt(this.x, this.y, 4);
             }
+
+            // 5秒后自动回收，防止内存溢出
+            this.asyncEvents.push(this.scene.time.delayedCall(5000, () => {
+                if (bullet && bullet.active) {
+                    bullet.destroy();
+                }
+            }));
         }));
     }
 

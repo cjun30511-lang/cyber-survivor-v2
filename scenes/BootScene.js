@@ -73,13 +73,99 @@ export class BootScene extends Phaser.Scene {
             ['player_hit', AssetManifest.player_hit],
             ['player_death', AssetManifest.player_death],
             ['nun_portrait', AssetManifest.nun_portrait],
+
+            // Mobs
+            ['skeleton_walk', AssetManifest.skeleton_walk],
+            ['skeleton_attack', AssetManifest.skeleton_attack],
+            ['skeleton_hit', AssetManifest.skeleton_hit],
+            ['skeleton_death', AssetManifest.skeleton_death],
+
+            ['ghost_float', AssetManifest.ghost_float],
+            ['ghost_cast', AssetManifest.ghost_cast],
+            ['ghost_death', AssetManifest.ghost_death],
+
+            ['iron_tank_walk', AssetManifest.iron_tank_walk],
+            ['iron_tank_attack', AssetManifest.iron_tank_attack],
+            ['iron_tank_hit', AssetManifest.iron_tank_hit],
+            ['iron_tank_death', AssetManifest.iron_tank_death],
+
+            ['ghoul_walk', AssetManifest.ghoul_walk],
+            ['ghoul_attack', AssetManifest.ghoul_attack],
+            ['ghoul_hit', AssetManifest.ghoul_hit],
+            ['ghoul_death', AssetManifest.ghoul_death],
+            ['cultist_walk', AssetManifest.cultist_walk],
+            ['cultist_attack', AssetManifest.cultist_attack],
+            ['cultist_hit', AssetManifest.cultist_hit],
+            ['cultist_death', AssetManifest.cultist_death],
+            ['imp_walk', AssetManifest.imp_walk],
+            ['imp_attack', AssetManifest.imp_attack],
+            ['imp_hit', AssetManifest.imp_hit],
+            ['imp_death', AssetManifest.imp_death],
+            ['wraith_walk', AssetManifest.wraith_walk],
+            ['wraith_attack', AssetManifest.wraith_attack],
+            ['wraith_hit', AssetManifest.wraith_hit],
+            ['wraith_death', AssetManifest.wraith_death],
+            ['brute_walk', AssetManifest.brute_walk],
+            ['brute_attack', AssetManifest.brute_attack],
+            ['brute_hit', AssetManifest.brute_hit],
+            ['brute_death', AssetManifest.brute_death],
+
+            ['boss_demon_idle', AssetManifest.boss_demon_idle],
+            ['boss_demon_attack', AssetManifest.boss_demon_attack],
+            ['boss_demon_hit', AssetManifest.boss_demon_hit],
+            ['boss_demon_death', AssetManifest.boss_demon_death],
+            ['boss_frost_idle', AssetManifest.boss_frost_idle],
+            ['boss_frost_attack', AssetManifest.boss_frost_attack],
+            ['boss_frost_hit', AssetManifest.boss_frost_hit],
+            ['boss_frost_death', AssetManifest.boss_frost_death],
+            ['boss_plague_idle', AssetManifest.boss_plague_idle],
+            ['boss_plague_attack', AssetManifest.boss_plague_attack],
+            ['boss_plague_hit', AssetManifest.boss_plague_hit],
+            ['boss_plague_death', AssetManifest.boss_plague_death],
+            ['boss_void_idle', AssetManifest.boss_void_idle],
+            ['boss_void_attack', AssetManifest.boss_void_attack],
+            ['boss_void_hit', AssetManifest.boss_void_hit],
+            ['boss_void_death', AssetManifest.boss_void_death],
+
+            // VFX
+            ['talisman_proj_a', AssetManifest.talisman_proj_a],
+            ['talisman_proj_b', AssetManifest.talisman_proj_b],
+            ['talisman_proj_c', AssetManifest.talisman_proj_c],
+            ['talisman_proj_d', AssetManifest.talisman_proj_d],
+            ['talisman_imp_a', AssetManifest.talisman_imp_a],
+            ['talisman_imp_b', AssetManifest.talisman_imp_b],
+            ['talisman_imp_c', AssetManifest.talisman_imp_c],
+            ['talisman_imp_d', AssetManifest.talisman_imp_d],
+
+            ['fireball_unlock', AssetManifest.fireball_unlock],
+            ['fireball_lv2', AssetManifest.fireball_lv2],
+            ['fireball_lv3', AssetManifest.fireball_lv3],
+            ['fireball_lv4_ultimate', AssetManifest.fireball_lv4_ultimate],
+
+            ['shield_unlock_loop', AssetManifest.shield_unlock_loop],
+            ['shield_lv2_loop', AssetManifest.shield_lv2_loop],
+            ['shield_lv3_loop', AssetManifest.shield_lv3_loop],
+            ['shield_lv4_loop', AssetManifest.shield_lv4_loop],
+
+            ['magnet_trail', AssetManifest.magnet_trail],
+            ['level_up_burst', AssetManifest.level_up_burst],
+
+            // Background & legacy keys
             ['skeleton_bug', AssetManifest.skeleton_bug],
             ['ghost_caster', AssetManifest.ghost_caster],
             ['iron_tank', AssetManifest.iron_tank],
+            ['boss', AssetManifest.boss],
             ['lava_tile', AssetManifest.lava_tile],
             ['ground_overlay', AssetManifest.ground_overlay],
-            ['blood_flame_vfx', AssetManifest.blood_flame_vfx],
-            ['boss', AssetManifest.boss],
+            ...Array.from({ length: 8 }, (_, index) => [
+                `map_base_${index}`,
+                AssetManifest[`map_base_${index}`]
+            ]),
+            ...Array.from({ length: 8 }, (_, index) => [
+                `map_overlay_${index}`,
+                AssetManifest[`map_overlay_${index}`]
+            ]),
+
             ['menu_hero_bg', AssetManifest.menu_hero_bg],
             ['menu_nun_keyart', AssetManifest.menu_nun_keyart],
             ['menu_logo_plate', AssetManifest.menu_logo_plate],
@@ -99,8 +185,34 @@ export class BootScene extends Phaser.Scene {
 
             const image = new Image();
             image.onload = () => {
-                if (key.startsWith('player_')) {
-                    this.textures.addSpriteSheet(key, image, { frameWidth: 128, frameHeight: 128 });
+                if (key.startsWith('player_') || key.startsWith('fireball_') || key.startsWith('shield_') || key === 'level_up_burst') {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 384, frameHeight: 384 });
+                } else if (
+                    key.startsWith('skeleton_') ||
+                    key.startsWith('ghost_') ||
+                    key.startsWith('iron_tank_') ||
+                    key.startsWith('ghoul_') ||
+                    key.startsWith('cultist_') ||
+                    key.startsWith('imp_') ||
+                    key.startsWith('wraith_') ||
+                    key.startsWith('brute_')
+                ) {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 256, frameHeight: 256 });
+                } else if (
+                    key.startsWith('boss_demon_') ||
+                    key.startsWith('boss_frost_') ||
+                    key.startsWith('boss_plague_') ||
+                    key.startsWith('boss_void_')
+                ) {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 384, frameHeight: 384 });
+                } else if (key.startsWith('talisman_')) {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 256, frameHeight: 256 });
+                } else if (key === 'magnet_trail') {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 192, frameHeight: 192 });
+                } else if (key === 'skeleton_bug' || key === 'ghost_caster' || key === 'iron_tank') {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 256, frameHeight: 256 });
+                } else if (key === 'boss') {
+                    this.textures.addSpriteSheet(key, image, { frameWidth: 384, frameHeight: 384 });
                 } else {
                     this.textures.addImage(key, image);
                 }
@@ -116,57 +228,8 @@ export class BootScene extends Phaser.Scene {
     }
 
     trimEmbeddedTextures() {
-        const trimTexture = (key, padding = 0) => {
-            const texture = this.textures.get(key);
-            const source = texture?.getSourceImage?.();
-            if (!source) return;
-
-            const width = source.width;
-            const height = source.height;
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            ctx.drawImage(source, 0, 0);
-
-            const imageData = ctx.getImageData(0, 0, width, height).data;
-            let minX = width;
-            let minY = height;
-            let maxX = -1;
-            let maxY = -1;
-
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const alpha = imageData[(y * width + x) * 4 + 3];
-                    if (alpha < 12) continue; // 忽略极其微弱的半透明抗锯齿/噪点边缘，实现强力深层有效区域裁切
-                    if (x < minX) minX = x;
-                    if (y < minY) minY = y;
-                    if (x > maxX) maxX = x;
-                    if (y > maxY) maxY = y;
-                }
-            }
-
-            if (maxX < minX || maxY < minY) return;
-
-            minX = Math.max(0, minX - padding);
-            minY = Math.max(0, minY - padding);
-            maxX = Math.min(width - 1, maxX + padding);
-            maxY = Math.min(height - 1, maxY + padding);
-
-            const trimmedWidth = maxX - minX + 1;
-            const trimmedHeight = maxY - minY + 1;
-            const trimmedCanvas = document.createElement('canvas');
-            trimmedCanvas.width = trimmedWidth;
-            trimmedCanvas.height = trimmedHeight;
-            trimmedCanvas
-                .getContext('2d')
-                .drawImage(source, minX, minY, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
-
-            this.textures.remove(key);
-            this.textures.addCanvas(key, trimmedCanvas);
-        };
-
-        trimTexture('iron_tank', 10);
+        // commented out to protect animated sprite sheet grids
+        // const trimTexture = (key, padding = 0) => { ... }
     }
 
     recolorNunVisuals() {
@@ -206,7 +269,7 @@ export class BootScene extends Phaser.Scene {
             ctx.putImageData(imageData, 0, 0);
             this.textures.remove(key);
             if (key.startsWith('player_')) {
-                this.textures.addSpriteSheet(key, canvas, { frameWidth: 128, frameHeight: 128 });
+                this.textures.addSpriteSheet(key, canvas, { frameWidth: 384, frameHeight: 384 });
             } else {
                 this.textures.addCanvas(key, canvas);
             }
@@ -227,9 +290,10 @@ export class BootScene extends Phaser.Scene {
     }
 
     registerPlayerAnimations() {
+        // Player Animations (384x384)
         this.anims.create({
             key: 'player_idle_anim',
-            frames: this.anims.generateFrameNumbers('player_idle', { start: 0, end: 5 }),
+            frames: this.anims.generateFrameNumbers('player_idle', { start: 0, end: 7 }),
             frameRate: 10,
             repeat: -1
         });
@@ -285,8 +349,217 @@ export class BootScene extends Phaser.Scene {
 
         this.anims.create({
             key: 'player_death_anim',
-            frames: this.anims.generateFrameNumbers('player_death', { start: 0, end: 5 }),
+            frames: this.anims.generateFrameNumbers('player_death', { start: 0, end: 9 }),
             frameRate: 10,
+            repeat: 0
+        });
+
+        // Skeleton Animations (256x256)
+        this.anims.create({
+            key: 'skeleton_walk_anim',
+            frames: this.anims.generateFrameNumbers('skeleton_walk', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'skeleton_attack_anim',
+            frames: this.anims.generateFrameNumbers('skeleton_attack', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'skeleton_hit_anim',
+            frames: this.anims.generateFrameNumbers('skeleton_hit', { start: 0, end: 2 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'skeleton_death_anim',
+            frames: this.anims.generateFrameNumbers('skeleton_death', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: 0
+        });
+
+        // Ghost Caster Animations (256x256)
+        this.anims.create({
+            key: 'ghost_float_anim',
+            frames: this.anims.generateFrameNumbers('ghost_float', { start: 0, end: 5 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'ghost_cast_anim',
+            frames: this.anims.generateFrameNumbers('ghost_cast', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'ghost_death_anim',
+            frames: this.anims.generateFrameNumbers('ghost_death', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: 0
+        });
+
+        // Iron Tank Animations (256x256)
+        this.anims.create({
+            key: 'iron_tank_walk_anim',
+            frames: this.anims.generateFrameNumbers('iron_tank_walk', { start: 0, end: 7 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'iron_tank_attack_anim',
+            frames: this.anims.generateFrameNumbers('iron_tank_attack', { start: 0, end: 3 }),
+            frameRate: 8,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'iron_tank_hit_anim',
+            frames: this.anims.generateFrameNumbers('iron_tank_hit', { start: 0, end: 2 }),
+            frameRate: 10,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'iron_tank_death_anim',
+            frames: this.anims.generateFrameNumbers('iron_tank_death', { start: 0, end: 7 }),
+            frameRate: 8,
+            repeat: 0
+        });
+
+        ['ghoul', 'cultist', 'imp', 'wraith', 'brute'].forEach((prefix) => {
+            this.anims.create({
+                key: `${prefix}_walk_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_walk`, { start: 0, end: 7 }),
+                frameRate: prefix === 'brute' ? 8 : 10,
+                repeat: -1
+            });
+            this.anims.create({
+                key: `${prefix}_attack_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_attack`, { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: 0
+            });
+            this.anims.create({
+                key: `${prefix}_hit_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_hit`, { start: 0, end: 2 }),
+                frameRate: 12,
+                repeat: 0
+            });
+            this.anims.create({
+                key: `${prefix}_death_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_death`, { start: 0, end: 7 }),
+                frameRate: prefix === 'brute' ? 8 : 10,
+                repeat: 0
+            });
+        });
+
+        // Boss Demon Animations (384x384)
+        ['boss_demon', 'boss_frost', 'boss_plague', 'boss_void'].forEach((prefix) => {
+            this.anims.create({
+                key: `${prefix}_idle_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_idle`, { start: 0, end: 5 }),
+                frameRate: 8,
+                repeat: -1
+            });
+            this.anims.create({
+                key: `${prefix}_attack_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_attack`, { start: 0, end: 5 }),
+                frameRate: 10,
+                repeat: 0
+            });
+            this.anims.create({
+                key: `${prefix}_hit_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_hit`, { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: 0
+            });
+            this.anims.create({
+                key: `${prefix}_death_anim`,
+                frames: this.anims.generateFrameNumbers(`${prefix}_death`, { start: 0, end: 9 }),
+                frameRate: 8,
+                repeat: 0
+            });
+        });
+
+        // Talisman projectile and impact VFX (256x256)
+        ['a', 'b', 'c', 'd'].forEach((variant) => {
+            this.anims.create({
+                key: `talisman_proj_${variant}_anim`,
+                frames: this.anims.generateFrameNumbers(`talisman_proj_${variant}`, { start: 0, end: 7 }),
+                frameRate: 18,
+                repeat: -1
+            });
+            this.anims.create({
+                key: `talisman_imp_${variant}_anim`,
+                frames: this.anims.generateFrameNumbers(`talisman_imp_${variant}`, { start: 0, end: 9 }),
+                frameRate: 30,
+                repeat: 0
+            });
+        });
+
+        // Fireball Animations (384x384)
+        this.anims.create({
+            key: 'fireball_unlock_anim',
+            frames: this.anims.generateFrameNumbers('fireball_unlock', { start: 0, end: 3 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'fireball_lv2_anim',
+            frames: this.anims.generateFrameNumbers('fireball_lv2', { start: 0, end: 3 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'fireball_lv3_anim',
+            frames: this.anims.generateFrameNumbers('fireball_lv3', { start: 0, end: 3 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'fireball_lv4_ultimate_anim',
+            frames: this.anims.generateFrameNumbers('fireball_lv4_ultimate', { start: 0, end: 3 }),
+            frameRate: 12,
+            repeat: 0
+        });
+
+        // Shield Animations (384x384)
+        this.anims.create({
+            key: 'shield_unlock_loop_anim',
+            frames: this.anims.generateFrameNumbers('shield_unlock_loop', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'shield_lv2_loop_anim',
+            frames: this.anims.generateFrameNumbers('shield_lv2_loop', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'shield_lv3_loop_anim',
+            frames: this.anims.generateFrameNumbers('shield_lv3_loop', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'shield_lv4_loop_anim',
+            frames: this.anims.generateFrameNumbers('shield_lv4_loop', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        // Magnet & Level up (192x192 / 384x384)
+        this.anims.create({
+            key: 'magnet_trail_anim',
+            frames: this.anims.generateFrameNumbers('magnet_trail', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'level_up_burst_anim',
+            frames: this.anims.generateFrameNumbers('level_up_burst', { start: 0, end: 3 }),
+            frameRate: 12,
             repeat: 0
         });
     }
@@ -317,16 +590,16 @@ export class BootScene extends Phaser.Scene {
         // A. 邪能魔弹 (暗紫色球体 + 鲜红外边)
         if (!createTextureFromAtlas('casterBullet', 'blood_flame_vfx', 512, 0, 128, 48)) {
             let bG = this.make.graphics({ x: 0, y: 0, add: false });
-            bG.fillStyle(0x4a0e4e, 1); 
-            bG.fillCircle(8, 8, 4); 
-            bG.lineStyle(1.5, 0xff1a1a, 0.85); 
-            bG.strokeCircle(8, 8, 6); 
+            bG.fillStyle(0x4a0e4e, 1);
+            bG.fillCircle(8, 8, 4);
+            bG.lineStyle(1.5, 0xff1a1a, 0.85);
+            bG.strokeCircle(8, 8, 6);
             bG.generateTexture('casterBullet', 16, 16);
         }
 
         // A1. 驱魔骑士：黄金弧光圣光斩 (slash_gold) - 128x128 Premium Golden Crescent
         let sgG = this.make.graphics({ x: 0, y: 0, add: false });
-        
+
         // Outer broad glowing golden halo
         sgG.lineStyle(10, 0xe5a93c, 0.35);
         sgG.beginPath();
@@ -349,7 +622,7 @@ export class BootScene extends Phaser.Scene {
         sgG.closePath();
         sgG.fillPath();
         sgG.strokePath();
-        
+
         sgG.generateTexture('slash_gold', 128, 128);
 
 
@@ -420,7 +693,7 @@ export class BootScene extends Phaser.Scene {
 
         // B. 白骨碎片 ( Bone Shard - 代替符咒 )
         let tG = this.make.graphics({ x: 0, y: 0, add: false });
-        tG.fillStyle(0xcfc5b3, 0.95); 
+        tG.fillStyle(0xcfc5b3, 0.95);
         tG.beginPath();
         tG.moveTo(8, 0);
         tG.lineTo(14, 8);
@@ -436,10 +709,10 @@ export class BootScene extends Phaser.Scene {
         // C. 鲜血新星火球 ( Blood Nova )
         if (!createTextureFromAtlas('fireball', 'blood_flame_vfx', 128, 0, 128, 128)) {
             let fG = this.make.graphics({ x: 0, y: 0, add: false });
-            fG.fillStyle(0x8a0000, 1); 
-            fG.fillCircle(12, 12, 9); 
-            fG.lineStyle(2, 0xff1a1a, 1); 
-            fG.strokeCircle(12, 12, 9); 
+            fG.fillStyle(0x8a0000, 1);
+            fG.fillCircle(12, 12, 9);
+            fG.lineStyle(2, 0xff1a1a, 1);
+            fG.strokeCircle(12, 12, 9);
             fG.generateTexture('fireball', 24, 24);
         }
 
@@ -460,43 +733,43 @@ export class BootScene extends Phaser.Scene {
         // D. 亡魂余烬 ( Soul Ember - 经验晶石 )
         let xG = this.make.graphics({ x: 0, y: 0, add: false });
         xG.fillStyle(0x00ffff, 1); // 赛博幽蓝
-        xG.beginPath(); 
-        xG.moveTo(8, 1); 
-        xG.lineTo(14, 8); 
-        xG.lineTo(8, 15); 
-        xG.lineTo(2, 8); 
+        xG.beginPath();
+        xG.moveTo(8, 1);
+        xG.lineTo(14, 8);
+        xG.lineTo(8, 15);
+        xG.lineTo(2, 8);
         xG.closePath();
-        xG.fillPath(); 
+        xG.fillPath();
         xG.generateTexture('xpOrb', 16, 16);
 
         // E. 铁血古币 ( Iron Coin )
         let cG = this.make.graphics({ x: 0, y: 0, add: false });
-        cG.fillStyle(0x8c7e6c, 1); 
-        cG.fillCircle(8, 8, 7); 
-        cG.lineStyle(1.2, 0xb8860b, 1); 
-        cG.strokeCircle(8, 8, 7); 
-        cG.fillStyle(0x080606, 1); 
+        cG.fillStyle(0x8c7e6c, 1);
+        cG.fillCircle(8, 8, 7);
+        cG.lineStyle(1.2, 0xb8860b, 1);
+        cG.strokeCircle(8, 8, 7);
+        cG.fillStyle(0x080606, 1);
         cG.fillRect(6, 6, 4, 4); // 经典方孔
         cG.generateTexture('coin', 16, 16);
 
         // F. 神圣结界金盾 ( Sanctuary Shield )
         let sG = this.make.graphics({ x: 0, y: 0, add: false });
-        sG.lineStyle(3.5, 0xe5a93c, 0.85); 
-        sG.strokeCircle(70, 70, 68); 
-        sG.lineStyle(1.5, 0x8a0000, 0.45); 
-        sG.strokeCircle(70, 70, 56); 
+        sG.lineStyle(3.5, 0xe5a93c, 0.85);
+        sG.strokeCircle(70, 70, 68);
+        sG.lineStyle(1.5, 0x8a0000, 0.45);
+        sG.strokeCircle(70, 70, 56);
         sG.generateTexture('shield', 140, 140);
 
         // G. 溅血碎肉粒子
         let ptG = this.make.graphics({ x: 0, y: 0, add: false });
-        ptG.fillStyle(0x8a0000, 1); 
+        ptG.fillStyle(0x8a0000, 1);
         ptG.fillRect(0, 0, 6, 6);
         ptG.generateTexture('particle', 6, 6);
 
         // H. 碎骨灰烬粒子
         if (!createTextureFromAtlas('fireParticle', 'blood_flame_vfx', 512, 680, 32, 32)) {
             let fptG = this.make.graphics({ x: 0, y: 0, add: false });
-            fptG.fillStyle(0xcfc5b3, 1); 
+            fptG.fillStyle(0xcfc5b3, 1);
             fptG.fillRect(0, 0, 4, 4);
             fptG.generateTexture('fireParticle', 4, 4);
         }
@@ -588,13 +861,13 @@ export class BootScene extends Phaser.Scene {
 
         // L. Procedural ground grid texture (ground_grid, 128x128) - Gothic Volcanic Stone Tiles
         let ggG = this.make.graphics({ x: 0, y: 0, add: false });
-        
+
         // Transparent background, only draw details
-        
+
         // 1. Slate tile border lines (dark joints)
         ggG.lineStyle(2.0, 0x060303, 0.95);
         ggG.strokeRect(0, 0, 128, 128);
-        
+
         // 2. Beveled edges for stone depth
         ggG.lineStyle(1.0, 0x2d1712, 0.85); // Slate brown bevel highlights
         ggG.beginPath();
@@ -649,7 +922,7 @@ export class BootScene extends Phaser.Scene {
         ggG.fillRect(116, 4, 8, 8);
         ggG.fillRect(4, 116, 8, 8);
         ggG.fillRect(116, 116, 8, 8);
-        
+
         ggG.generateTexture('ground_grid', 128, 128);
     }
 }

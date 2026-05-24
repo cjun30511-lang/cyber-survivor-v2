@@ -18,7 +18,7 @@ export class SkillSystem {
         // 1. 初始化技能物理组
         this.projectilesGroup = scene.physics.add.group();
         this.shieldsGroup = scene.physics.add.group();
-        
+
         // 共享引用，便于 CombatSystem 使用
         scene.projectilesGroup = this.projectilesGroup;
         scene.shieldsGroup = this.shieldsGroup;
@@ -45,7 +45,7 @@ export class SkillSystem {
         if (talLvl > 0) {
             const talCfg = SkillConfig.talisman;
             const cd = talCfg.baseCooldown * (talCfg.levels[talLvl]?.cooldownMult || 1.0);
-            
+
             if (time - this.lastTalismanTime > cd) {
                 if (this.castTalisman(player, talLvl)) {
                     this.lastTalismanTime = time;
@@ -58,7 +58,7 @@ export class SkillSystem {
         if (fireLvl > 0) {
             const fireCfg = SkillConfig.fireball;
             const cd = fireCfg.baseCooldown;
-            
+
             if (time - this.lastFireballTime > cd) {
                 if (this.castFireball(player, fireLvl)) {
                     this.lastFireballTime = time;
@@ -89,19 +89,19 @@ export class SkillSystem {
         const baseDmg = talCfg.baseDamage;
         const lvlCfg = talCfg.levels[level];
         const damage = Math.floor(baseDmg * (lvlCfg.damageMult || 1.0) * GameState.run.damageMultiplier);
-        
+
         // 符矢发射枚数 (1级1枚，2级2枚，依此类推)
         const count = lvlCfg.count || 1;
         const lockOnRange = talCfg.range || 450;
-        
+
         // 索敌：从场景怪群组中寻找最近的怪物
         const nearestEnemies = this.getNearestEnemies(player, count);
         if (nearestEnemies.length === 0) return false;
-        
+
         // 仅打进入有效索敌范围的怪，避免隔很远提前起手
         const dist = Phaser.Math.Distance.BetweenPoints(player, nearestEnemies[0]);
         if (dist > lockOnRange) return false;
-        
+
         let primaryAngle = Phaser.Math.Angle.Between(player.x, player.y, nearestEnemies[0].x, nearestEnemies[0].y);
 
         const roleKey = (GameState.run && GameState.run.roleId) || GameState.meta.selectedRole || 'exorcist';
@@ -114,7 +114,7 @@ export class SkillSystem {
 
             // 120ms后重新进行一次索敌，保证弹道极其精准对准当前方向的怪
             const freshEnemies = this.getNearestEnemies(player, count);
-            
+
             // 前摇期间目标消失或走出范围时允许取消本次攻击
             if (freshEnemies.length === 0 || Phaser.Math.Distance.BetweenPoints(player, freshEnemies[0]) > lockOnRange) {
                 if (player.presenter) {
@@ -123,14 +123,14 @@ export class SkillSystem {
                     const vy = player.body ? player.body.velocity.y : 0;
                     const speedSq = vx * vx + vy * vy;
                     const currentlyMoving = speedSq > 10;
-                    
+
                     player.presenter.state = currentlyMoving ? 'move' : 'idle';
                     player.presenter.lastIsMoving = currentlyMoving;
                     player.play(currentlyMoving ? 'player_run_anim' : 'player_idle_anim', true);
                 }
                 return;
             }
-            
+
             // 计算主射击物理角度
             let mainAngle = player.flipX ? Math.PI : 0;
             if (freshEnemies[0]) {
@@ -231,7 +231,7 @@ export class SkillSystem {
         const baseDmg = fireCfg.baseDamage;
         const baseRad = fireCfg.baseRadius;
         const lvlCfg = fireCfg.levels[level];
-        
+
         const damage = Math.floor(baseDmg * (lvlCfg.damageMult || 1.0) * GameState.run.damageMultiplier);
         const radius = baseRad * (lvlCfg.radiusMult || 1.0);
 
@@ -245,7 +245,7 @@ export class SkillSystem {
         const ty = randomEnemy.y;
 
         // 产生范围引爆器
-        const fireProj = new FireballProjectile(this.scene, tx, ty, damage, radius);
+        const fireProj = new FireballProjectile(this.scene, tx, ty, damage, radius, level);
         this.projectilesGroup.add(fireProj);
 
         // 触发角色施法动作
@@ -267,7 +267,7 @@ export class SkillSystem {
 
         const shCfg = SkillConfig.shield;
         const lvlCfg = shCfg.levels[level];
-        
+
         const damage = Math.floor(shCfg.baseDamage * (lvlCfg.damageMult || 1.0) * GameState.run.damageMultiplier);
         const radius = shCfg.baseRadius * (lvlCfg.radiusMult || 1.0);
 

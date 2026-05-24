@@ -71,7 +71,7 @@ export const GameState = {
         // 加载选定角色的基础属性
         const roleId = this.meta.selectedRole || 'nun';
         const roleCfg = RolePresentationConfig.roles[roleId] || RolePresentationConfig.roles.nun;
-        
+
         const baseHp = roleCfg.baseHpMax || PlayerConfig.baseMaxHp;
         const baseSpeed = roleCfg.baseSpeed || PlayerConfig.baseSpeed;
         const baseDmgMult = roleCfg.damageMultiplier || 1.0;
@@ -84,7 +84,7 @@ export const GameState = {
             hp: totalMaxHp,
             speed: baseSpeed * (spdBonus + eqSpeedMultiplier),
             damageMultiplier: baseDmgMult * (dmgBonus + eqDamageMultiplier),
-            
+
             level: 1,
             xp: 0,
             xpNeeded: PlayerConfig.xpFormula.baseXp,
@@ -95,6 +95,7 @@ export const GameState = {
             goldEarned: 0,
             startTime: Date.now(),
             elapsedTime: 0,     // 秒级计时
+            mapIndex: Math.floor(Math.random() * 8),
 
             // 本局掉落获得的待结算装备 ID 列表 (例如 ['goth_ring'])
             equipmentDrops: [],
@@ -142,10 +143,10 @@ export const GameState = {
         this.saveMeta();
 
         // 5. 清除临时局内状态，并保留收获明细供 ResultScene 展示
-        const runSummary = { 
-            ...this.run, 
+        const runSummary = {
+            ...this.run,
             victory,
-            lootedGear 
+            lootedGear
         };
         this.run = null;
 

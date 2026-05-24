@@ -44,19 +44,20 @@ export class BattleScene extends Phaser.Scene {
         this.soundSynth = SoundSynth;
         this.dmgTextPool = new DamageTextPool(this);
 
-        // 2. 物理图层及平铺无限熔岩背景
+        // 2. 物理图层及平铺无限地图背景
         // 绑定 tileSprite 在玩家视角正中心，update 中随移动偏移，达成零开销无限地图
-        this.background = this.add.tileSprite(w / 2, h / 2, w, h, 'lava_tile')
+        const mapTextures = this.getRunMapTextures();
+        this.background = this.add.tileSprite(w / 2, h / 2, w, h, mapTextures.base)
             .setDepth(0)
-            .setAlpha(0.92)
-            .setTint(0xe7d8c0)
+            .setAlpha(0.74)
+            .setTint(0x9f988e)
             .setScrollFactor(0)
             .setTileScale(0.38); // 进一步压缩地砖视觉尺寸，让主角与怪物重新回到可读的世界尺度
-        this.gridOverlay = this.add.tileSprite(w / 2, h / 2, w, h, 'ground_overlay')
+        this.gridOverlay = this.add.tileSprite(w / 2, h / 2, w, h, mapTextures.overlay)
             .setDepth(1)
-            .setAlpha(0.46)
-            .setBlendMode(Phaser.BlendModes.SCREEN)
-            .setTint(0xff7744)
+            .setAlpha(0.24)
+            .setBlendMode(Phaser.BlendModes.NORMAL)
+            .setTint(0x6f7f8f)
             .setScrollFactor(0)
             .setTileScale(0.38); // 叠层纹理同步缩小，避免角色像贴在超大砖块上的纸片
 
@@ -105,13 +106,25 @@ export class BattleScene extends Phaser.Scene {
         }
     }
 
+    getRunMapTextures() {
+        const rawMapIndex = Number.isFinite(GameState.run?.mapIndex) ? GameState.run.mapIndex : 0;
+        const mapIndex = Phaser.Math.Wrap(Math.floor(rawMapIndex), 0, 8);
+        const base = `map_base_${mapIndex}`;
+        const overlay = `map_overlay_${mapIndex}`;
+
+        return {
+            base: this.textures.exists(base) ? base : 'lava_tile',
+            overlay: this.textures.exists(overlay) ? overlay : 'ground_overlay'
+        };
+    }
+
     /**
      * 程序化构建四种粒子发生器，支持多重爆爆感 (†字、☠字、火花、碎肉)
      */
     initParticleGroups() {
         // A. 碎火花粒子 (修士跑尘与爆火球)
         this.fireParticles = this.createParticleEmitter('fireParticle', 0.9, 140, { min: 250, max: 400 });
-        
+
         // B. 爆血碎肉粒子 (杂鱼阵亡)
         this.deathParticles = this.createParticleEmitter('particle', 1.0, 180, { min: 300, max: 500 });
 
@@ -127,7 +140,7 @@ export class BattleScene extends Phaser.Scene {
      */
     createParticleEmitter(texture, scale, baseSpeed, lifespanRange) {
         const group = this.add.group();
-        
+
         group.emitParticleAt = (x, y, count, tint = null) => {
             for (let i = 0; i < count; i++) {
                 if (!this.scene || !this.scene.isActive('BattleScene')) return;
@@ -143,7 +156,7 @@ export class BattleScene extends Phaser.Scene {
                 this.physics.add.existing(p);
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Phaser.Math.FloatBetween(baseSpeed * 0.4, baseSpeed);
-                
+
                 p.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
                 p.body.setDrag(180); // 地面摩擦力
 
@@ -188,7 +201,7 @@ export class BattleScene extends Phaser.Scene {
         this.spawnSystem.update(time, delta, this.player);
         this.skillSystem.update(time, this.player);
         this.lootSystem.update(time, this.player);
-        
+
         // 4. 驱动 UI 刷新与虚拟雷电扫频 CD
         this.hud.update(time);
         this.joystick.update(time);
@@ -253,7 +266,7 @@ export class BattleScene extends Phaser.Scene {
         panel.fillStyle(0x130d0d, 0.96);
         panel.strokeRect(px - panelW/2, py - panelH/2, panelW, panelH);
         panel.fillRect(px - panelW/2 + 2, py - panelH/2 + 2, panelW - 4, panelH - 4);
-        
+
         // 浮雕红线内衬
         panel.lineStyle(1, 0x8a0000, 0.65);
         panel.strokeRect(px - panelW/2 + 6, py - panelH/2 + 6, panelW - 12, panelH - 12);
@@ -429,7 +442,7 @@ export class BattleScene extends Phaser.Scene {
             this.player.setScale(1.0);
             this.player.setAngle(0);
             this.player.clearTint();
-            
+
             // 黄金圣光全屏闪耀
             this.cameras.main.flash(800, 229, 169, 60, 0.8);
             if (this.soundSynth) {
@@ -468,7 +481,7 @@ export class BattleScene extends Phaser.Scene {
         this.isTransitioningOut = true;
         this.beginSceneExit();
         this.cameras.main.flash(1000, 229, 169, 60, 0.8); // 耀目金光
-        
+
         // 播放神圣驱魔完成声效
         if (this.soundSynth) {
             this.soundSynth.play('laser');

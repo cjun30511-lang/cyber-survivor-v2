@@ -31,12 +31,12 @@ async function main() {
 
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
-    
+
     // Log runtime exception events
     if (msg.method === 'Runtime.exceptionThrown') {
       console.error('❌ GLOBAL EXCEPTION:', JSON.stringify(msg.params.exceptionDetails, null, 2));
     }
-    
+
     // Log console API calls
     if (msg.method === 'Runtime.consoleAPICalled') {
       const args = msg.params.args.map(a => a.value !== undefined ? a.value : JSON.stringify(a));
@@ -112,25 +112,25 @@ async function main() {
   await runEval('Spawn small monsters', `(() => {
     const scene = window.game.scene.keys.BattleScene;
     if (!scene) return 'NO_BATTLE';
-    
+
     scene.enemiesGroup.clear(true, true);
-    
+
     const px = scene.player.x;
     const py = scene.player.y;
-    
+
     const sk = new SkeletonMelee(scene, px + 120, py - 40);
     const gh = new GhostCaster(scene, px - 110, py + 30);
-    
+
     scene.enemiesGroup.add(sk);
     scene.enemiesGroup.add(gh);
-    
+
     scene.enemiesGroup.getChildren().forEach(enemy => {
       enemy.speed = 0;
       if (enemy.body) enemy.body.setVelocity(0, 0);
       enemy.update = () => {};
       enemy.updateVisuals = () => {};
     });
-    
+
     return 'SPAWNED_SMALL_SUCCESS';
   })()`);
 
@@ -138,25 +138,25 @@ async function main() {
   await runEval('Spawn heavy monsters', `(() => {
     const scene = window.game.scene.keys.BattleScene;
     if (!scene) return 'NO_BATTLE';
-    
+
     scene.enemiesGroup.clear(true, true);
-    
+
     const px = scene.player.x;
     const py = scene.player.y;
-    
+
     const tk = new IronTank(scene, px + 180, py + 20);
     const bs = new BossDemon(scene, px, py - 180);
-    
+
     scene.enemiesGroup.add(tk);
     scene.enemiesGroup.add(bs);
-    
+
     scene.enemiesGroup.getChildren().forEach(enemy => {
       enemy.speed = 0;
       if (enemy.body) enemy.body.setVelocity(0, 0);
       enemy.update = () => {};
       enemy.updateVisuals = () => {};
     });
-    
+
     return 'SPAWNED_HEAVY_SUCCESS';
   })()`);
 
@@ -164,12 +164,12 @@ async function main() {
   await runEval('Spawn chaos scene', `(() => {
     const scene = window.game.scene.keys.BattleScene;
     if (!scene) return 'NO_BATTLE';
-    
+
     scene.enemiesGroup.clear(true, true);
-    
+
     const px = scene.player.x;
     const py = scene.player.y;
-    
+
     for (let i = 0; i < 24; i++) {
       const angle = (i / 24) * Math.PI * 2;
       const dist = 140 + Math.random() * 150;
@@ -178,7 +178,7 @@ async function main() {
       const sk = new SkeletonMelee(scene, ex, ey);
       scene.enemiesGroup.add(sk);
     }
-    
+
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2 + 0.2;
       const dist = 240 + Math.random() * 100;
@@ -187,7 +187,7 @@ async function main() {
       const gh = new GhostCaster(scene, ex, ey);
       scene.enemiesGroup.add(gh);
     }
-    
+
     const diagonals = [
       {dx: -220, dy: -220}, {dx: 220, dy: -220},
       {dx: -220, dy: 220}, {dx: 220, dy: 220}
@@ -196,16 +196,20 @@ async function main() {
       const tk = new IronTank(scene, px + d.dx, py + d.dy);
       scene.enemiesGroup.add(tk);
     });
-    
+
     const bs = new BossDemon(scene, px, py - 280);
     scene.enemiesGroup.add(bs);
-    
+
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2;
-      scene.skillSystem.spawnTalisman(scene.player, angle);
+      const speed = 450;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const proj = new TalismanProjectile(scene, px, py - 10, vx, vy, angle, 20);
+      scene.skillSystem.projectilesGroup.add(proj);
       scene.fireParticles.emitParticleAt(px + Math.cos(angle)*60, py + Math.sin(angle)*60, 4);
     }
-    
+
     return 'SPAWNED_CHAOS_SUCCESS';
   })()`);
 

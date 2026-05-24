@@ -47,23 +47,118 @@ js_files = [
 
 # Base64 资产的占位符替换字典
 assets = {
-    '__PLAYER_IDLE_B64__': 'assets_generated/nun/nun_idle.png',
-    '__PLAYER_RUN_B64__': 'assets_generated/nun/nun_run.png',
-    '__PLAYER_RUN_START_B64__': 'assets_generated/nun/nun_run_start.png',
-    '__PLAYER_RUN_STOP_B64__': 'assets_generated/nun/nun_run_stop.png',
-    '__PLAYER_CAST_WINDUP_B64__': 'assets_generated/nun/nun_cast_windup.png',
-    '__PLAYER_CAST_RELEASE_B64__': 'assets_generated/nun/nun_cast_release.png',
-    '__PLAYER_CAST_RECOVERY_B64__': 'assets_generated/nun/nun_cast_recovery.png',
-    '__PLAYER_HIT_B64__': 'assets_generated/nun/nun_hit.png',
-    '__PLAYER_DEATH_B64__': 'assets_generated/nun/nun_death.png',
-    '__NUN_PORTRAIT_B64__': 'assets_generated/nun/nun_portrait_transparent.png',
-    '__ENEMY_BUG_B64__': '../cyber_survivor/skeleton_new_processed.png.b64.txt',
-    '__ENEMY_TANK_B64__': 'assets_generated/knight/knight_topdown_ingame_transparent.png',
-    '__ENEMY_CASTER_B64__': '../cyber_survivor/ghost_caster_processed.png.b64.txt',
+    # 玩家修女动作包 (384x384)
+    '__PLAYER_IDLE_B64__': 'assets_generated/nun_hd/nun_hd_idle_sheet.png',
+    '__PLAYER_RUN_B64__': 'assets_generated/nun_hd/nun_hd_run_sheet.png',
+    '__PLAYER_RUN_START_B64__': 'assets_generated/nun_hd/nun_hd_run_sheet.png',
+    '__PLAYER_RUN_STOP_B64__': 'assets_generated/nun_hd/nun_hd_run_sheet.png',
+    '__PLAYER_CAST_WINDUP_B64__': 'assets_generated/nun_hd/nun_hd_cast_windup_sheet.png',
+    '__PLAYER_CAST_RELEASE_B64__': 'assets_generated/nun_hd/nun_hd_cast_release_sheet.png',
+    '__PLAYER_CAST_RECOVERY_B64__': 'assets_generated/nun_hd/nun_hd_cast_recovery_sheet.png',
+    '__PLAYER_HIT_B64__': 'assets_generated/nun_hd/nun_hd_hit_sheet.png',
+    '__PLAYER_DEATH_B64__': 'assets_generated/nun_hd/nun_hd_death_sheet.png',
+    '__NUN_PORTRAIT_B64__': 'assets_generated/nun_hd/nun_hd_portrait_transparent.png',
+
+    # 枯骨步兵 (192x192)
+    '__SKELETON_WALK_B64__': 'assets_generated/enemies_hd/skeleton_hd_walk_sheet.png',
+    '__SKELETON_ATTACK_B64__': 'assets_generated/enemies_hd/skeleton_hd_attack_sheet.png',
+    '__SKELETON_HIT_B64__': 'assets_generated/enemies_hd/skeleton_hd_hit_sheet.png',
+    '__SKELETON_DEATH_B64__': 'assets_generated/enemies_hd/skeleton_hd_death_sheet.png',
+
+    # 幽灵祭司 (192x192)
+    '__GHOST_FLOAT_B64__': 'assets_generated/enemies_hd/ghost_caster_hd_float_sheet.png',
+    '__GHOST_CAST_B64__': 'assets_generated/enemies_hd/ghost_caster_hd_cast_sheet.png',
+    '__GHOST_DEATH_B64__': 'assets_generated/enemies_hd/ghost_caster_hd_death_sheet.png',
+
+    # 铁壁重装 (192x192)
+    '__IRON_TANK_WALK_B64__': 'assets_generated/enemies_hd/iron_tank_hd_walk_sheet.png',
+    '__IRON_TANK_ATTACK_B64__': 'assets_generated/enemies_hd/iron_tank_hd_attack_sheet.png',
+    '__IRON_TANK_HIT_B64__': 'assets_generated/enemies_hd/iron_tank_hd_hit_sheet.png',
+    '__IRON_TANK_DEATH_B64__': 'assets_generated/enemies_hd/iron_tank_hd_death_sheet.png',
+    '__GHOUL_WALK_B64__': 'assets_generated/enemies_hd/ghoul_hd_walk_sheet.png',
+    '__GHOUL_ATTACK_B64__': 'assets_generated/enemies_hd/ghoul_hd_attack_sheet.png',
+    '__GHOUL_HIT_B64__': 'assets_generated/enemies_hd/ghoul_hd_hit_sheet.png',
+    '__GHOUL_DEATH_B64__': 'assets_generated/enemies_hd/ghoul_hd_death_sheet.png',
+    '__CULTIST_WALK_B64__': 'assets_generated/enemies_hd/cultist_hd_walk_sheet.png',
+    '__CULTIST_ATTACK_B64__': 'assets_generated/enemies_hd/cultist_hd_attack_sheet.png',
+    '__CULTIST_HIT_B64__': 'assets_generated/enemies_hd/cultist_hd_hit_sheet.png',
+    '__CULTIST_DEATH_B64__': 'assets_generated/enemies_hd/cultist_hd_death_sheet.png',
+    '__IMP_WALK_B64__': 'assets_generated/enemies_hd/imp_hd_walk_sheet.png',
+    '__IMP_ATTACK_B64__': 'assets_generated/enemies_hd/imp_hd_attack_sheet.png',
+    '__IMP_HIT_B64__': 'assets_generated/enemies_hd/imp_hd_hit_sheet.png',
+    '__IMP_DEATH_B64__': 'assets_generated/enemies_hd/imp_hd_death_sheet.png',
+    '__WRAITH_WALK_B64__': 'assets_generated/enemies_hd/wraith_hd_walk_sheet.png',
+    '__WRAITH_ATTACK_B64__': 'assets_generated/enemies_hd/wraith_hd_attack_sheet.png',
+    '__WRAITH_HIT_B64__': 'assets_generated/enemies_hd/wraith_hd_hit_sheet.png',
+    '__WRAITH_DEATH_B64__': 'assets_generated/enemies_hd/wraith_hd_death_sheet.png',
+    '__BRUTE_WALK_B64__': 'assets_generated/enemies_hd/brute_hd_walk_sheet.png',
+    '__BRUTE_ATTACK_B64__': 'assets_generated/enemies_hd/brute_hd_attack_sheet.png',
+    '__BRUTE_HIT_B64__': 'assets_generated/enemies_hd/brute_hd_hit_sheet.png',
+    '__BRUTE_DEATH_B64__': 'assets_generated/enemies_hd/brute_hd_death_sheet.png',
+
+    # 恶魔首领 (384x384)
+    '__BOSS_DEMON_IDLE_B64__': 'assets_generated/enemies_hd/boss_demon_hd_idle_sheet.png',
+    '__BOSS_DEMON_ATTACK_B64__': 'assets_generated/enemies_hd/boss_demon_hd_attack_sheet.png',
+    '__BOSS_DEMON_HIT_B64__': 'assets_generated/enemies_hd/boss_demon_hd_hit_sheet.png',
+    '__BOSS_DEMON_DEATH_B64__': 'assets_generated/enemies_hd/boss_demon_hd_death_sheet.png',
+    '__BOSS_FROST_IDLE_B64__': 'assets_generated/enemies_hd/boss_frost_hd_idle_sheet.png',
+    '__BOSS_FROST_ATTACK_B64__': 'assets_generated/enemies_hd/boss_frost_hd_attack_sheet.png',
+    '__BOSS_FROST_HIT_B64__': 'assets_generated/enemies_hd/boss_frost_hd_hit_sheet.png',
+    '__BOSS_FROST_DEATH_B64__': 'assets_generated/enemies_hd/boss_frost_hd_death_sheet.png',
+    '__BOSS_PLAGUE_IDLE_B64__': 'assets_generated/enemies_hd/boss_plague_hd_idle_sheet.png',
+    '__BOSS_PLAGUE_ATTACK_B64__': 'assets_generated/enemies_hd/boss_plague_hd_attack_sheet.png',
+    '__BOSS_PLAGUE_HIT_B64__': 'assets_generated/enemies_hd/boss_plague_hd_hit_sheet.png',
+    '__BOSS_PLAGUE_DEATH_B64__': 'assets_generated/enemies_hd/boss_plague_hd_death_sheet.png',
+    '__BOSS_VOID_IDLE_B64__': 'assets_generated/enemies_hd/boss_void_hd_idle_sheet.png',
+    '__BOSS_VOID_ATTACK_B64__': 'assets_generated/enemies_hd/boss_void_hd_attack_sheet.png',
+    '__BOSS_VOID_HIT_B64__': 'assets_generated/enemies_hd/boss_void_hd_hit_sheet.png',
+    '__BOSS_VOID_DEATH_B64__': 'assets_generated/enemies_hd/boss_void_hd_death_sheet.png',
+
+    # 圣符飞矢 A/B/C/D 弹道与命中 (256x256)
+    '__TALISMAN_PROJ_A_B64__': 'assets_generated/vfx_hd/talisman_projectile_variant_a_sheet.png',
+    '__TALISMAN_PROJ_B_B64__': 'assets_generated/vfx_hd/talisman_projectile_variant_b_sheet.png',
+    '__TALISMAN_PROJ_C_B64__': 'assets_generated/vfx_hd/talisman_projectile_variant_c_sheet.png',
+    '__TALISMAN_PROJ_D_B64__': 'assets_generated/vfx_hd/talisman_projectile_variant_d_sheet.png',
+    '__TALISMAN_IMP_A_B64__': 'assets_generated/vfx_hd/talisman_impact_variant_a_sheet.png',
+    '__TALISMAN_IMP_B_B64__': 'assets_generated/vfx_hd/talisman_impact_variant_b_sheet.png',
+    '__TALISMAN_IMP_C_B64__': 'assets_generated/vfx_hd/talisman_impact_variant_c_sheet.png',
+    '__TALISMAN_IMP_D_B64__': 'assets_generated/vfx_hd/talisman_impact_variant_d_sheet.png',
+
+    # 玄火爆裂 (384x384)
+    '__FIREBALL_UNLOCK_B64__': 'assets_generated/vfx_hd/fireball_unlock_sheet.png',
+    '__FIREBALL_LV2_B64__': 'assets_generated/vfx_hd/fireball_lv2_sheet.png',
+    '__FIREBALL_LV3_B64__': 'assets_generated/vfx_hd/fireball_lv3_sheet.png',
+    '__FIREBALL_LV4_ULT_B64__': 'assets_generated/vfx_hd/fireball_lv4_ultimate_sheet.png',
+
+    # 圣光力场 (384x384)
+    '__SHIELD_UNLOCK_LOOP_B64__': 'assets_generated/vfx_hd/shield_unlock_loop_sheet.png',
+    '__SHIELD_LV2_LOOP_B64__': 'assets_generated/vfx_hd/shield_lv2_loop_sheet.png',
+    '__SHIELD_LV3_LOOP_B64__': 'assets_generated/vfx_hd/shield_lv3_loop_sheet.png',
+    '__SHIELD_LV4_LOOP_B64__': 'assets_generated/vfx_hd/shield_lv4_loop_sheet.png',
+
+    # 其他特效 (192x192 or 384x384)
+    '__MAGNET_TRAIL_B64__': 'assets_generated/vfx_hd/magnet_pickup_trail_sheet.png',
+    '__LEVEL_UP_BURST_B64__': 'assets_generated/vfx_hd/level_up_burst_sheet.png',
+
+    # 地盘地砖
     '__LAVA_TILE_B64__': 'assets_generated/dungeon/dungeon_base_tile.png',
     '__GROUND_OVERLAY_B64__': 'assets_generated/dungeon/dungeon_overlay_tile_transparent.png',
-    '__BLOOD_FLAME_VFX_B64__': 'assets_generated/vfx/blood_flame_vfx_sheet_transparent.png',
-    '__BOSS_B64__': '../cyber_survivor/boss_new_processed.png.b64.txt',
+    '__MAP_BASE_0_B64__': 'assets_generated/dungeon/map_base_0.png',
+    '__MAP_OVERLAY_0_B64__': 'assets_generated/dungeon/map_overlay_0.png',
+    '__MAP_BASE_1_B64__': 'assets_generated/dungeon/map_base_1.png',
+    '__MAP_OVERLAY_1_B64__': 'assets_generated/dungeon/map_overlay_1.png',
+    '__MAP_BASE_2_B64__': 'assets_generated/dungeon/map_base_2.png',
+    '__MAP_OVERLAY_2_B64__': 'assets_generated/dungeon/map_overlay_2.png',
+    '__MAP_BASE_3_B64__': 'assets_generated/dungeon/map_base_3.png',
+    '__MAP_OVERLAY_3_B64__': 'assets_generated/dungeon/map_overlay_3.png',
+    '__MAP_BASE_4_B64__': 'assets_generated/dungeon/map_base_4.png',
+    '__MAP_OVERLAY_4_B64__': 'assets_generated/dungeon/map_overlay_4.png',
+    '__MAP_BASE_5_B64__': 'assets_generated/dungeon/map_base_5.png',
+    '__MAP_OVERLAY_5_B64__': 'assets_generated/dungeon/map_overlay_5.png',
+    '__MAP_BASE_6_B64__': 'assets_generated/dungeon/map_base_6.png',
+    '__MAP_OVERLAY_6_B64__': 'assets_generated/dungeon/map_overlay_6.png',
+    '__MAP_BASE_7_B64__': 'assets_generated/dungeon/map_base_7.png',
+    '__MAP_OVERLAY_7_B64__': 'assets_generated/dungeon/map_overlay_7.png',
 }
 
 # Standalone 输出的 HTML 物理路径
@@ -82,16 +177,16 @@ def clean_js_module_syntax(content):
     # 移除 import 语句
     content = re.sub(r'^\s*import\s+[^;\n]+;?\s*$', '', content, flags=re.MULTILINE)
     content = re.sub(r'^\s*import\s*\{[^}]*\}\s*from\s+[^;\n]+;?\s*$', '', content, flags=re.MULTILINE)
-    
+
     # 移除 export default X
     content = re.sub(r'^\s*export\s+default\s+[^;\n]+;?\s*$', '', content, flags=re.MULTILINE)
-    
+
     # 转换 export class / const / let 为普通定义
     content = re.sub(r'^\s*export\s+(class|const|let|var|function)\s+', r'\1 ', content, flags=re.MULTILINE)
-    
+
     # 清理行尾多余的 export { X } 或者 export X
     content = re.sub(r'^\s*export\s*\{[^}]*\};?\s*$', '', content, flags=re.MULTILINE)
-    
+
     return content
 
 def normalize_data_uri(data):
@@ -133,10 +228,10 @@ def build():
         if not os.path.exists(filepath):
             print(f"❌ 错误: 找不到关键源文件 {filepath}")
             return False
-        
+
         with open(filepath, 'r', encoding='utf-8') as f:
             raw_content = f.read()
-            
+
         cleaned_content = clean_js_module_syntax(raw_content)
         compiled_js_blocks.append(f"\n// ==========================================\n// SOURCE: {relative_path}\n// ==========================================\n" + cleaned_content)
         print(f"✅ 已加载并清洗 ES6 语法: {relative_path}")
@@ -161,7 +256,7 @@ def build():
     if not os.path.exists(index_template_path):
         print(f"❌ 错误: 找不到 HTML 模板文件 {index_template_path}")
         return False
-        
+
     with open(index_template_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
 
@@ -170,7 +265,7 @@ def build():
     html_content = re.sub(r'<script>\s*// ==========================================[\s\S]*?</script>', '', html_content)
 
     bundled_script_tag = f"<script>\n{full_js}\n</script>"
-    
+
     if "<!-- BUNDLED_SCRIPTS_PLACEHOLDER -->" in html_content:
         standalone_html = html_content.replace("<!-- BUNDLED_SCRIPTS_PLACEHOLDER -->", bundled_script_tag)
     else:
@@ -188,7 +283,7 @@ def build():
             except Exception as e:
                 print(f"⚠️ 无法创建目录 {target_dir}: {e}，跳过此文件。")
                 continue
-                
+
         try:
             with open(target_path, 'w', encoding='utf-8') as f:
                 f.write(standalone_html)

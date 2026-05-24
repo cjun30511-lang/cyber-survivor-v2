@@ -6,6 +6,11 @@ export const GameConfig = {
     parent: 'game-container',
     width: 720,
     height: 1280,
+    render: {
+        antialias: true,
+        pixelArt: false,
+        roundPixels: false
+    },
     physics: {
         default: 'arcade',
         arcade: {
