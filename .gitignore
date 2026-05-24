@@ -11,6 +11,21 @@ scratch/*.jpg
 scratch/*.jpeg
 scratch/*.mp4
 scratch/*.log
+scratch/runtime_acceptance/
+scratch/generated_art_v2/
+scratch/generated_skeleton/
+
+# Rejected/generated commercial art packs are local-only until accepted.
+assets_source/
+assets_generated/commercial/
+assets_generated/enemies_hd/
+assets_generated/nun_hd/
+assets_generated/vfx_hd/
+assets_generated/weapons/
+
+# Standalone HTML embeds assets and must not be committed until art passes.
+index.html
+cyber_exorcist_standalone.html
 
 # Python/node caches.
 __pycache__/

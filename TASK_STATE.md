@@ -1,6 +1,123 @@
 # Cyber Survivor V2 Task State
 
-Updated: 2026-05-24 12:55 CST
+Updated: 2026-05-24 20:35 CST
+
+## Current Truth
+
+Commercial status: failed.
+
+The user explicitly rejected the current visual quality. This is correct. The project must not continue to treat the current runtime as commercial-ready.
+
+Primary failure:
+
+- art assets look cheap;
+- characters are low-resolution and can become visibly damaged under patching;
+- map quality is not a production arena;
+- monsters and bosses still rely too much on generated/procedural/transform language;
+- motion frame counts are below commercial expectations;
+- attack VFX and weapon socket engineering cannot hide weak source art.
+
+Commercial scope upgrade:
+
+- minimum 8 high-quality large maps;
+- 8 matching Bosses, one per map;
+- map-specific enemy families, at least 16 small enemies and 8 heavy/elite enemies;
+- main character, enemies, and Bosses need authored four-direction movement, attack, cast/skill, hit, and death coverage;
+- map colors must not fight player, monster, loot, warning, or VFX readability.
+
+Immediate rule:
+
+- Do not patch broken character frames.
+- Do not erase sprite pixels to solve pose problems.
+- Do not call overlay weapons final.
+- Do not call runtime screenshots accepted until `python3 tools/commercial_asset_audit.py` passes.
+
+Authoritative reset document:
+
+- `docs/COMMERCIAL_ART_RESET.md`
+- `docs/COMMERCIAL_WORLD_ROSTER_SPEC.md`
+- `docs/COMMERCIAL_DIRECTIONAL_ANIMATION_SPEC.md`
+
+Current audit command:
+
+```bash
+python3 tools/commercial_asset_audit.py
+```
+
+Expected current result:
+
+- fail, until high-resolution commercial source assets and full authored animation sheets are replaced.
+
+## Latest Antigravity Asset Review
+
+Status: reviewed, not commercial accepted.
+
+Antigravity delivered cleaner RGBA directional source files for the old first-slice scope and `python3 tools/commercial_import_pipeline.py` passes with `checked: 22`, `failed: 0`.
+
+However, visual review still rejects the pack as final commercial art:
+
+- the nun reads as a flat icon-level sprite, not a premium commercial character;
+- small/heavy enemies are simple geometric silhouettes with weak anatomy and material language;
+- the arena is a low-detail 1536 px dark grid/circle map, not a 4096 px high-quality authored map;
+- the current pack lacks nun `cast` and `skill` directional sheets;
+- the current pack lacks 8-map, 8-Boss, and enemy-family rosters.
+
+Current commercial audit:
+
+- `python3 tools/commercial_asset_audit.py`
+- result: fail, `checked: 101`, `failed: 41`
+
+Review artifact:
+
+- `scratch/runtime_acceptance/antigravity_phase4_asset_review.md`
+
+## Latest Antigravity Phase 5 Review
+
+Status: reviewed, not commercial accepted.
+
+Antigravity delivered a larger Phase 5 source pack with 8 map roster entries, 8 Boss roster entries, and 24 enemies. The old commercial audit passed before runtime-map checks were tightened.
+
+The audit was corrected because it did not verify that all 8 commercial maps were exported into runtime commercial assets. After adding required runtime checks for `assets_generated/commercial/maps/map_00..map_07_{base,overlay}.png`:
+
+- `python3 tools/commercial_asset_audit.py`
+- result: fail, `checked: 117`, `failed: 16`
+
+All 16 failures are missing runtime commercial map base/overlay files.
+
+Visual review still rejects the pack:
+
+- nun remains flat vector/icon style;
+- Bosses are mostly circle/rectangle silhouettes with palette changes;
+- enemies are simple rounded vector forms;
+- maps are tinted grid/circle arenas, not high-detail authored commercial maps.
+
+Review artifact:
+
+- `scratch/runtime_acceptance/antigravity_phase5_asset_review.md`
+
+## Antigravity Task Package
+
+Status: prepared for dispatch
+
+Task index:
+
+- `docs/ANTIGRAVITY_COMMERCIAL_ASSET_TASKS.md`
+
+Individual Antigravity task briefs:
+
+- `docs/antigravity_tasks/nun_character_asset_agent.md`
+- `docs/antigravity_tasks/enemy_asset_agent.md`
+- `docs/antigravity_tasks/map_arena_asset_agent.md`
+- `docs/antigravity_tasks/boss_roster_asset_agent.md`
+- `docs/antigravity_tasks/judgment_vfx_asset_agent.md`
+- `docs/antigravity_tasks/slicing_socket_agent.md`
+- `docs/antigravity_tasks/commercial_acceptance_agent.md`
+
+Dispatch rule:
+
+- Tasks 1-5 may run in parallel where dependencies allow.
+- `slicing_socket_agent` is blocked until the source art agents produce accepted outputs.
+- `commercial_acceptance_agent` is blocked until runtime integration uses accepted commercial sheets and manifests.
 
 ## Goal
 
@@ -131,6 +248,42 @@ Then run screenshot/runtime checks that verify:
 ## Current Visual Constraint
 
 Visual thesis: dark gothic cyber-survivor combat with restrained matte floors and high-readability silhouettes. Backgrounds must support combat clarity, not compete with units or VFX.
+
+## Commercial Rebuild Direction
+
+Status: active direction from 2026-05-24 evening
+
+The project should now move toward a commercial-quality survivor/looter action vertical slice. Do not treat the current quality gap as a single laser-coordinate bug or a single resolution problem. The gap is systemic:
+
+- character attack poses do not yet match the desired weapon logic;
+- weapon muzzle points are still too dependent on runtime patches;
+- VFX are mostly programmatic strokes rather than authored production effects;
+- maps are readable but not yet commercial arena art;
+- monster animation sheets exist but need more authored pose language;
+- combat feedback needs stronger rhythm, hitstop, sound, impact, death payoff, and loot payoff.
+
+Authoritative plan:
+
+- `docs/COMMERCIAL_REBUILD_PLAN.md`
+
+Immediate commercial vertical slice:
+
+- `Nun Judgment Rifle-Staff Combat Slice`
+
+Required next work:
+
+- Freeze broad feature expansion.
+- Redesign the nun attack pose so the weapon is visibly aimed from the hand rather than held vertically near the head.
+- Implement a real weapon/socket contract for hand and muzzle world points.
+- Replace temporary laser Graphics patches with a production VFX package: muzzle, beam, impact, residual.
+- Build one high-quality map arena pass and verify it with the player, mobs, heavy enemy, HUD, and VFX visible.
+- Improve one small enemy and one heavy enemy against that arena before expanding the content pool.
+
+Commercial acceptance gate:
+
+- At gameplay scale, attack source, target, timing, hit, and payoff must be readable without explanation.
+- If the user still needs to ask whether the laser comes from the head, body, weapon, or a floating point, the slice has not passed.
+- Runtime screenshots/GIFs are required for acceptance; static asset previews are not enough.
 
 ## Quality Asset Sprint 1
 
@@ -350,3 +503,88 @@ Next safe handoff point:
   - 8 个 Boss 的 idle/attack/hit/death 贴图和动画均存在，`missing: []`。
   - 8 个技能模式均触发成功，1 秒后 Boss 技能/子弹实体数量为 136。
   - `cyber_exorcist_standalone.html` 和 `index.html` 当前约 90MB，低于 GitHub 100MB 单文件硬限制，但已经接近上限；后续继续加大资产时应拆外部资源或做加载器，不宜继续无限扩大单 HTML。
+
+### 2026-05-24 中文补充：Phase 6 Antigravity 商业资产报告复核
+
+- 已复核 Antigravity 声称的 Phase 6 交付结果，并将结论写入：
+  - `scratch/runtime_acceptance/antigravity_phase6_asset_review.md`
+- 通过项：
+  - `python3 tools/commercial_import_pipeline.py` 通过，结果为 `{"checked": 38, "failed": 0}`。
+  - `python3 tools/commercial_asset_audit.py` 通过，结果为 `{"checked": 117, "failed": 0}`。
+  - `COMMERCIAL_GATE=1 python3 build.py` 通过。
+  - 构建日志确认 `assets_generated/commercial/maps/map_00_*` 到 `map_07_*` 的商业地图 base/overlay 已被内联进 standalone。
+  - 真实浏览器 smoke test 能加载 standalone，`Phaser` 和 `window.game` 存在，当前活动场景为 `MenuScene`，无错误横幅。
+- 重要限制：
+  - `scratch/runtime_acceptance/commercial_slice/` 下的混合战斗图是 `scratch/generate_mixed_combat_proofs.py` 通过 PIL 合成的证明图，不是真实 Phaser 战斗截图。
+  - 当前浏览器验收只证明能进入菜单和无基础加载错误，尚未证明真实 `BattleScene` 下的移动、攻击、怪物、Boss、地图和 VFX 达到商业表现。
+- 当前美术结论：
+  - 技术流水线通过。
+  - runtime 地图接线通过。
+  - 结构审计通过。
+  - 商业化美术质量仍不通过。
+  - 后续必须按真实商业美术换血推进，并以真实 BattleScene GIF/截图作为验收证据，不能用 PIL 合成图代替实机验收。
+- 已新增给 Antigravity 的下一阶段中文任务：
+  - `docs/antigravity_tasks/PHASE7_TRUE_COMMERCIAL_ART_REBUILD_PROMPT.md`
+  - 任务重点是 8 张地图、8 个 Boss、24 个怪物、主角四方向动作、VFX 全部真实换血，并要求真实 Phaser `BattleScene` 截图/GIF 验收。
+
+### 2026-05-24 中文补充：Phase 7 真高清独立地图源图
+
+- 用户指出的根因确认成立：上一批 `assets_source/commercial/maps/map_00..map_07_*_source.png` 虽是 4096x4096 文件，但实际来自 `scratch/generated_art_v2/map_sprint_1/map_source_contact_02_accepted_distinct.png` 的 1536x1024 联系图裁切放大，进真实 BattleScene 后仍显得模糊。
+- 本轮停止使用联系图作为最终地图源，新增原生 4096 地图生成器：
+  - `scratch/generate_true_hd_maps_phase7.py`
+  - 生成 manifest：`scratch/runtime_acceptance/phase7_source_review/phase7_true_hd_map_generation_manifest.json`
+  - manifest 标记 `method: native_4096_seeded_procedural_generation`、`contactSheetDerived: false`、`lossyCompression: false`。
+- 已重新生成 8 张独立地图源图，每张源图均为 4096x4096：
+  - `assets_source/commercial/maps/map_00_cathedral_source.png`
+  - `assets_source/commercial/maps/map_01_frozen_reliquary_source.png`
+  - `assets_source/commercial/maps/map_02_plague_courtyard_source.png`
+  - `assets_source/commercial/maps/map_03_void_chapel_source.png`
+  - `assets_source/commercial/maps/map_04_furnace_source.png`
+  - `assets_source/commercial/maps/map_05_drowned_catacombs_source.png`
+  - `assets_source/commercial/maps/map_06_blood_ossuary_source.png`
+  - `assets_source/commercial/maps/map_07_bone_necropolis_source.png`
+- 每张地图也已重新导出 source 层的 `base`、`overlay`、`props`、`lighting` 和 `review.md`；runtime base/overlay 为 2048x2048 的无损 PNG 导出，不再是低分辨率联系图放大。
+- 已重新生成审查图：
+  - `assets_source/commercial/maps/readability_contact.png`
+  - `scratch/runtime_acceptance/phase7_source_review/phase7_map_readability_contact.png`
+  - `scratch/runtime_acceptance/phase7_true_runtime/phase7_runtime_map_combat_contact.png`
+- 已验证：
+  - `python3 scratch/generate_true_hd_maps_phase7.py` 通过。
+  - `python3 tools/commercial_import_pipeline.py` 通过，`{"checked": 38, "failed": 0}`。
+  - `python3 tools/commercial_asset_audit.py` 通过，`{"checked": 117, "failed": 0}`。
+  - `COMMERCIAL_GATE=1 python3 build.py` 通过，构建日志确认内联的是 `assets_generated/commercial/maps/map_00_*` 到 `map_07_*` 的商业地图。
+  - `node scratch/capture_true_runtime_assets.js` 通过，`battleSceneVerified: true`，输出 16 张真实 BattleScene PNG 和 4 个 GIF。
+- 最新真实验收产物：
+  - `scratch/runtime_acceptance/phase7_true_runtime/runtime_report.json`
+  - `scratch/runtime_acceptance/phase7_true_runtime/map_00_cathedral_combat.png` 到 `map_07_bone_necropolis_combat.png`
+  - `scratch/runtime_acceptance/phase7_true_runtime/boss_00_boss_skill.png` 到 `boss_07_boss_bone_skill.png`
+  - `scratch/runtime_acceptance/phase7_true_runtime/nun_move_4way.gif`
+  - `scratch/runtime_acceptance/phase7_true_runtime/nun_attack_4way.gif`
+  - `scratch/runtime_acceptance/phase7_true_runtime/boss_skills_carousel.gif`
+  - `scratch/runtime_acceptance/phase7_true_runtime/real_combat_6s_chaos.gif`
+- 当前结论：
+  - 地图模糊的“联系图裁切放大”根因已移除。
+  - 真实 Phaser BattleScene 验收通过，无 console error，无 exception。
+  - 这批图解决清晰度来源问题，但仍属于生成式地图资产；若继续追商业上线质感，下一步应做手绘/AI 分块美术深化，而不是再靠单张联系图或压缩画质。
+
+### 2026-05-24 中文补充：删除不合格美术资产和发布物
+
+- 用户复核后明确拒绝当前地图、怪物和 Boss 视觉质量；结论更新为：Phase 7 技术链路通过，但美术资产失败，不能作为商业发布内容。
+- 已删除本地未跟踪 rejected 资产包和验收产物：
+  - `assets_source/`
+  - `assets_generated/commercial/`
+  - `assets_generated/weapons/`
+  - `scratch/runtime_acceptance/`
+  - `scratch/generated_art_v2/`
+  - `scratch/generated_skeleton/`
+  - 多个 scratch 调试/切图/程序化生成脚本，包括 `scratch/generate_true_hd_maps_phase7.py`、`scratch/generate_all_commercial_assets*.py`、`scratch/generate_mixed_combat_proofs.py`
+- 已从 Git 跟踪中移除会同步到 GitHub 的不合格资产和发布物：
+  - `assets_generated/enemies_hd/`
+  - `assets_generated/nun_hd/`
+  - `assets_generated/vfx_hd/`
+  - `scratch/generated_art_v2/`
+  - `scratch/runtime_acceptance/`
+  - `cyber_exorcist_standalone.html`
+  - `index.html`
+- 已更新 `.gitignore`，禁止再次误提交 rejected/generated commercial art、runtime 验收产物和内联 standalone HTML。
+- 已更新 `README.md`，明确当前没有可发布 standalone；下一次必须先建立真实商业美术基准，再生成 GitHub Pages 发布物。
