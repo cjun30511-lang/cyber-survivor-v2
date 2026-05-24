@@ -43,7 +43,7 @@ export const WaveConfig = {
     // 终极 Boss 剧情刷新时间 (秒)
     bossSpawnTime: 60,
     bossName: '核心·数字巨灵',
-    bossPool: ['boss', 'boss_frost', 'boss_plague', 'boss_void']
+    bossPool: ['boss', 'boss_frost', 'boss_plague', 'boss_void', 'boss_furnace', 'boss_drowned', 'boss_blood', 'boss_bone']
 };
 
 export default WaveConfig;

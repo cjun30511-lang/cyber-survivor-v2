@@ -19,6 +19,27 @@ PREVIEW = QA_DIR / "runtime_preview_contact.png"
 IRON_TANK_QUALITY_SOURCE = QUALITY_SRC / "iron_tank_source_candidate_01.png"
 BOSS_DEMON_QUALITY_SOURCE = QUALITY_SRC / "boss_demon_source_candidate_02.png"
 MAP_SPRINT_SOURCE = SRC / "map_sprint_1" / "map_source_contact_02_accepted_distinct.png"
+BOSS_SPRINT_SOURCE = SRC / "boss_sprint_1" / "boss_source_contact_01_accepted.png"
+BOSS_SPRINT_PREFIXES = [
+    "boss_demon",
+    "boss_frost",
+    "boss_plague",
+    "boss_void",
+    "boss_furnace",
+    "boss_drowned",
+    "boss_blood",
+    "boss_bone",
+]
+BOSS_SPRINT_COLORS = {
+    "boss_demon": (255, 86, 28),
+    "boss_frost": (104, 224, 255),
+    "boss_plague": (150, 210, 74),
+    "boss_void": (160, 84, 255),
+    "boss_furnace": (255, 126, 34),
+    "boss_drowned": (46, 214, 224),
+    "boss_blood": (230, 42, 54),
+    "boss_bone": (178, 204, 150),
+}
 
 
 def remove_black_backdrop(cell: Image.Image) -> Image.Image:
@@ -319,8 +340,8 @@ def crop_visible(img: Image.Image, pad: int = 10) -> Image.Image:
     ))
 
 
-def load_chroma_cutout(path: Path) -> Image.Image:
-    image = Image.open(path).convert("RGBA")
+def chroma_cutout_image(image: Image.Image) -> Image.Image:
+    image = image.convert("RGBA")
     data = np.array(image)
     rgb = data[..., :3].astype(np.float32)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
@@ -345,6 +366,10 @@ def load_chroma_cutout(path: Path) -> Image.Image:
     transparent = data[..., 3] == 0
     data[transparent, :3] = (0, 0, 0)
     return crop_visible(Image.fromarray(data), 18)
+
+
+def load_chroma_cutout(path: Path) -> Image.Image:
+    return chroma_cutout_image(Image.open(path))
 
 
 def rel_box(frame: Image.Image, box: tuple[float, float, float, float]) -> tuple[int, int, int, int]:
@@ -1112,6 +1137,223 @@ def build_boss_variant_idles(boss: list[Image.Image]) -> dict[str, list[Image.Im
     return variants
 
 
+def extract_boss_sprint_sources() -> dict[str, Image.Image]:
+    atlas = Image.open(BOSS_SPRINT_SOURCE).convert("RGBA")
+    columns = 4
+    rows = 2
+    cell_w = atlas.width // columns
+    cell_h = atlas.height // rows
+    sources: dict[str, Image.Image] = {}
+
+    for index, name in enumerate(BOSS_SPRINT_PREFIXES):
+        col = index % columns
+        row = index // columns
+        margin = 4
+        cell = atlas.crop((
+            col * cell_w + margin,
+            row * cell_h + margin,
+            (col + 1) * cell_w - margin,
+            (row + 1) * cell_h - margin,
+        ))
+        cutout = chroma_cutout_image(cell)
+        color = BOSS_SPRINT_COLORS[name]
+        sources[name] = color_grade_frame(
+            cutout,
+            tint_color=color,
+            tint_strength=0.025,
+            brightness=1.05,
+            contrast=1.07,
+            saturation=1.02,
+        )
+    return sources
+
+
+def boss_seed(name: str, offset: int = 0) -> int:
+    return 8100 + offset + sum((idx + 1) * ord(char) for idx, char in enumerate(name))
+
+
+def boss_fx_color(name: str) -> tuple[int, int, int]:
+    return BOSS_SPRINT_COLORS.get(name, (255, 86, 34))
+
+
+def boss_flash(frame: Image.Image, strength: float) -> Image.Image:
+    base = frame.convert("RGBA")
+    overlay = Image.new("RGBA", base.size, (255, 255, 245, 0))
+    alpha = np.array(base.getchannel("A")).astype(np.float32)
+    overlay_data = np.array(overlay)
+    overlay_data[..., 3] = np.clip(alpha * strength, 0, 255).astype(np.uint8)
+    return Image.alpha_composite(base, Image.fromarray(overlay_data))
+
+
+def add_boss_cast_glow(frame: Image.Image, name: str, progress: float, *, burst: bool = False) -> Image.Image:
+    out = frame.copy()
+    draw = ImageDraw.Draw(out, "RGBA")
+    color = boss_fx_color(name)
+    bbox = content_bbox(out)
+    left, top, right, bottom = bbox
+    cx = (left + right) // 2
+    cy = int(top + (bottom - top) * 0.48)
+    radius = int(18 + progress * 42)
+    alpha = int(210 * max(0.18, 1.0 - progress * 0.38))
+    for step in range(4):
+        r = radius + step * 9
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(*color, max(22, alpha - step * 42)), width=max(2, 6 - step))
+    if burst:
+        rng = np.random.default_rng(boss_seed(name, int(progress * 1000)))
+        for _ in range(10):
+            angle = rng.uniform(-np.pi, np.pi)
+            length = rng.uniform(26, 68)
+            x2 = cx + int(np.cos(angle) * length)
+            y2 = cy + int(np.sin(angle) * length)
+            draw.line((cx, cy, x2, y2), fill=(*color, int(rng.integers(86, 180))), width=int(rng.integers(2, 5)))
+    return out
+
+
+def add_boss_death_cracks(frame: Image.Image, name: str, progress: float, index: int) -> Image.Image:
+    out = frame.copy()
+    draw = ImageDraw.Draw(out, "RGBA")
+    color = boss_fx_color(name)
+    alpha = np.array(out.getchannel("A"))
+    ys, xs = np.where(alpha > 36)
+    if len(xs) == 0:
+        return out
+    rng = np.random.default_rng(boss_seed(name, 400 + index))
+    count = int(7 + progress * 20)
+    for _ in range(count):
+        start = int(rng.integers(0, len(xs)))
+        x = int(xs[start])
+        y = int(ys[start])
+        length = int(rng.uniform(16, 54) * (0.45 + progress))
+        angle = rng.uniform(-np.pi * 0.85, np.pi * 0.15)
+        x2 = x + int(np.cos(angle) * length)
+        y2 = y + int(np.sin(angle) * length)
+        draw.line((x, y, x2, y2), fill=(*color, int(rng.integers(64, 168))), width=int(rng.integers(1, 4)))
+    return out
+
+
+def build_boss_sprint_idle_frames(source: Image.Image, name: str, count: int = 6) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+    for index in range(count):
+        angle = index / count * np.pi * 2
+        phase = np.sin(angle)
+        sway = np.cos(angle)
+        regions = [
+            {"box": (0.00, 0.26, 0.34, 0.88), "offset": (int(-6 + phase * -10), int(4 + sway * 4)), "rotate": phase * -2.4, "fade": 0.42},
+            {"box": (0.66, 0.24, 1.00, 0.90), "offset": (int(6 + phase * 10), int(3 - sway * 4)), "rotate": phase * 2.4, "fade": 0.42},
+            {"box": (0.24, 0.62, 0.50, 1.00), "offset": (int(phase * -4), int(sway * 5)), "fade": 0.52},
+            {"box": (0.50, 0.62, 0.76, 1.00), "offset": (int(phase * 4), int(sway * -5)), "fade": 0.52},
+        ]
+        frame = compose_segment_pose(
+            source,
+            regions,
+            body_scale_x=1.0 + phase * 0.010,
+            body_scale_y=1.0 - phase * 0.018,
+            body_rotate=sway * 0.45,
+        )
+        if index % 2 == 0:
+            frame = tint(frame, boss_fx_color(name), 0.035)
+        frames.append(frame)
+    return frames
+
+
+def build_boss_sprint_attack_frames(source: Image.Image, name: str, count: int = 6) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+    for index in range(count):
+        progress = index / max(1, count - 1)
+        windup = max(0.0, 1.0 - abs(progress - 0.24) / 0.24)
+        strike = max(0.0, 1.0 - abs(progress - 0.72) / 0.30)
+        regions = [
+            {"box": (0.00, 0.22, 0.42, 0.86), "offset": (int(-18 * windup - 38 * strike), int(-8 * windup + 26 * strike)), "rotate": -8.0 * windup - 13.0 * strike, "scale_x": 1.08, "fade": 0.20},
+            {"box": (0.58, 0.22, 1.00, 0.90), "offset": (int(16 * windup + 40 * strike), int(-10 * windup + 24 * strike)), "rotate": 8.0 * windup + 13.0 * strike, "scale_x": 1.08, "fade": 0.20},
+            {"box": (0.22, 0.02, 0.78, 0.44), "offset": (0, int(-12 * windup + 8 * strike)), "rotate": 2.0 * strike, "fade": 0.34},
+        ]
+        frame = compose_segment_pose(
+            source,
+            regions,
+            body_scale_x=1.0 + strike * 0.050 - windup * 0.018,
+            body_scale_y=1.0 - strike * 0.035 + windup * 0.024,
+            body_rotate=-2.4 * windup + 2.2 * strike,
+            body_offset=(int(8 * strike - 6 * windup), int(-4 * windup)),
+        )
+        frame = add_boss_cast_glow(frame, name, progress, burst=progress >= 0.52)
+        if strike > 0.25:
+            frame = add_sparks(frame, boss_seed(name, index), boss_fx_color(name), 16)
+        frames.append(frame)
+    return frames
+
+
+def build_boss_sprint_hit_frames(source: Image.Image, name: str, count: int = 4) -> list[Image.Image]:
+    frames: list[Image.Image] = []
+    for index in range(count):
+        recoil = (index + 1) / count
+        frame = compose_segment_pose(
+            source,
+            [
+                {"box": (0.00, 0.28, 0.44, 0.92), "offset": (int(-18 * recoil), int(11 * recoil)), "rotate": -5.0 * recoil, "fade": 0.34},
+                {"box": (0.56, 0.26, 1.00, 0.92), "offset": (int(12 * recoil), int(-9 * recoil)), "rotate": 4.0 * recoil, "fade": 0.34},
+            ],
+            body_scale_x=1.0 - recoil * 0.018,
+            body_scale_y=1.0 + recoil * 0.026,
+            body_rotate=-3.8 * recoil,
+            body_offset=(int(-18 * recoil), int(2 * recoil)),
+        )
+        frame = tint(frame, boss_fx_color(name), 0.10 + index * 0.035)
+        frame = boss_flash(frame, 0.42 if index == 0 else 0.18)
+        frame = add_sparks(frame, boss_seed(name, 120 + index), (255, 244, 214), 18 - index * 2)
+        frames.append(frame)
+    return frames
+
+
+def build_boss_sprint_death_frames(source: Image.Image, name: str, count: int = 10) -> list[Image.Image]:
+    regions = [
+        (0.00, 0.20, 0.38, 0.84),
+        (0.62, 0.20, 1.00, 0.88),
+        (0.20, 0.00, 0.80, 0.42),
+        (0.20, 0.38, 0.82, 0.78),
+        (0.16, 0.64, 0.48, 1.00),
+        (0.50, 0.64, 0.84, 1.00),
+    ]
+    frames: list[Image.Image] = []
+    for index in range(count):
+        progress = index / max(1, count - 1)
+        canvas = Image.new("RGBA", (source.width + 220, source.height + 220), (0, 0, 0, 0))
+        rng = np.random.default_rng(boss_seed(name, 260 + index))
+        for ridx, region in enumerate(regions):
+            box = rel_box(source, region)
+            part = soften_alpha(source.crop(box), 0.85)
+            part = add_boss_death_cracks(part, name, progress, index + ridx)
+            part = fade(part, max(0.04, 1.0 - progress * (0.80 + ridx * 0.025)))
+            part = transform(
+                part,
+                scale_x=max(0.62, 1.0 - progress * (0.12 + ridx * 0.01)),
+                scale_y=max(0.40, 1.0 - progress * (0.22 if ridx >= 4 else 0.12)),
+                rotate=(ridx - 2.5) * progress * 9.0,
+            )
+            left, top, _right, _bottom = box
+            dx = int((ridx - 2.5) * progress * 34 + rng.uniform(-6, 7))
+            dy = int(progress * (42 + ridx * 13) + rng.uniform(-4, 8))
+            canvas.alpha_composite(part, (110 + left + dx, 56 + top + dy))
+        collapsed = crop_visible(canvas, 18)
+        collapsed = transform(collapsed, scale_y=max(0.48, 1.0 - progress * 0.28), rotate=progress * 2.4)
+        collapsed = add_boss_death_cracks(collapsed, name, progress, index)
+        collapsed = add_sparks(collapsed, boss_seed(name, 520 + index), boss_fx_color(name), 10 + int(progress * 18))
+        frames.append(collapsed)
+    return frames
+
+
+def build_boss_sprint_sets() -> dict[str, dict[str, list[Image.Image]]]:
+    sources = extract_boss_sprint_sources()
+    sets: dict[str, dict[str, list[Image.Image]]] = {}
+    for name, source in sources.items():
+        sets[name] = {
+            "idle": build_boss_sprint_idle_frames(source, name, 6),
+            "attack": build_boss_sprint_attack_frames(source, name, 6),
+            "hit": build_boss_sprint_hit_frames(source, name, 4),
+            "death": build_boss_sprint_death_frames(source, name, 10),
+        }
+    return sets
+
+
 def make_art_dungeon_map_pair(index: int, size: int = 1024) -> tuple[Image.Image, Image.Image]:
     atlas = Image.open(MAP_SPRINT_SOURCE).convert("RGB")
     columns = 4
@@ -1413,43 +1655,92 @@ def save_map_readability_grid() -> Path:
     return out_path
 
 
+def save_boss_roster_contact() -> Path:
+    out_path = QA_DIR / "qa_boss_roster_contact.png"
+    cell_w, cell_h = 360, 260
+    contact = Image.new("RGBA", (cell_w * 4, cell_h * 2), (10, 10, 10, 255))
+    for index, name in enumerate(BOSS_SPRINT_PREFIXES):
+        idle = sheet_frame(ENEMIES / f"{name}_hd_idle_sheet.png", 0, 384, 384)
+        attack = sheet_frame(ENEMIES / f"{name}_hd_attack_sheet.png", 3, 384, 384)
+        cell = Image.new("RGBA", (cell_w, cell_h), (18, 18, 18, 255))
+        for sprite, x in ((idle, 26), (attack, 176)):
+            item = crop_visible(sprite, 3)
+            target_h = 196
+            scale = target_h / item.height
+            item = item.resize((max(1, int(item.width * scale)), target_h), Image.Resampling.LANCZOS)
+            bg = Image.new("RGBA", item.size, (28, 28, 28, 255))
+            bg.alpha_composite(item)
+            cell.alpha_composite(bg, (x + (134 - item.width) // 2, 24))
+        draw = ImageDraw.Draw(cell)
+        draw.text((12, 10), name, fill=(210, 206, 190, 255))
+        draw.text((40, 226), "idle", fill=(150, 150, 142, 255))
+        draw.text((190, 226), "attack", fill=(150, 150, 142, 255))
+        contact.alpha_composite(cell, ((index % 4) * cell_w, (index // 4) * cell_h))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    contact.save(out_path)
+    return out_path
+
+
+def save_boss_action_contact() -> Path:
+    out_path = QA_DIR / "qa_boss_action_contact.png"
+    rows = []
+    for name in BOSS_SPRINT_PREFIXES:
+        row = Image.new("RGBA", (384 * 4, 424), (14, 14, 14, 255))
+        for col, action in enumerate(("idle", "attack", "hit", "death")):
+            path = ENEMIES / f"{name}_hd_{action}_sheet.png"
+            frame_index = {"idle": 1, "attack": 3, "hit": 0, "death": 7}[action]
+            frame = sheet_frame(path, frame_index, 384, 384)
+            bg = Image.new("RGBA", frame.size, (28, 28, 28, 255))
+            bg.alpha_composite(frame)
+            row.alpha_composite(bg, (col * 384, 0))
+            draw = ImageDraw.Draw(row)
+            draw.text((col * 384 + 12, 394), f"{name} {action}", fill=(190, 188, 176, 255))
+        rows.append(row)
+    contact = Image.new("RGBA", (384 * 4, 424 * len(rows)), (10, 10, 10, 255))
+    for index, row in enumerate(rows):
+        contact.alpha_composite(row, (0, index * 424))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    contact.save(out_path)
+    return out_path
+
+
+def save_boss_motion_diff() -> Path:
+    out_path = QA_DIR / "qa_boss_motion_diff.png"
+    cell_w, cell_h = 240, 220
+    contact = Image.new("RGBA", (cell_w * 4, cell_h * len(BOSS_SPRINT_PREFIXES)), (10, 10, 10, 255))
+    for row, name in enumerate(BOSS_SPRINT_PREFIXES):
+        for col, action in enumerate(("idle", "attack", "hit", "death")):
+            path = ENEMIES / f"{name}_hd_{action}_sheet.png"
+            a = np.array(sheet_frame(path, 0, 384, 384).convert("RGBA")).astype(np.int16)
+            b = np.array(sheet_frame(path, 1, 384, 384).convert("RGBA")).astype(np.int16)
+            diff = np.abs(a[..., :3] - b[..., :3]).sum(axis=2)
+            alpha_diff = np.abs(a[..., 3] - b[..., 3])
+            intensity = np.clip(diff / 3 + alpha_diff, 0, 255).astype(np.uint8)
+            diff_img = np.zeros((384, 384, 4), dtype=np.uint8)
+            diff_img[..., 0] = intensity
+            diff_img[..., 1] = np.clip(intensity * 0.64, 0, 255)
+            diff_img[..., 3] = np.where(intensity > 9, 255, 0).astype(np.uint8)
+            cell = dark_cell(Image.fromarray(diff_img), (cell_w, cell_h), f"{name} {action}")
+            contact.alpha_composite(cell, (col * cell_w, row * cell_h))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    contact.save(out_path)
+    return out_path
+
+
 def make_quality_sprint_qa() -> list[Path]:
-    outputs = [
-        QA_DIR / "qa_iron_tank_contact.png",
-        QA_DIR / "qa_demon_boss_contact.png",
-        QA_DIR / "qa_iron_tank_frame_diff.png",
-        QA_DIR / "qa_demon_boss_frame_diff.png",
+    return [
+        save_boss_roster_contact(),
+        save_boss_action_contact(),
+        save_boss_motion_diff(),
     ]
-    save_contact(
-        [
-            ("iron walk", ENEMIES / "iron_tank_hd_walk_sheet.png", 256, 256),
-            ("iron attack", ENEMIES / "iron_tank_hd_attack_sheet.png", 256, 256),
-            ("iron hit", ENEMIES / "iron_tank_hd_hit_sheet.png", 256, 256),
-            ("iron death", ENEMIES / "iron_tank_hd_death_sheet.png", 256, 256),
-        ],
-        outputs[0],
-    )
-    save_contact(
-        [
-            ("boss idle", ENEMIES / "boss_demon_hd_idle_sheet.png", 384, 384),
-            ("boss attack", ENEMIES / "boss_demon_hd_attack_sheet.png", 384, 384),
-            ("boss hit", ENEMIES / "boss_demon_hd_hit_sheet.png", 384, 384),
-            ("boss death", ENEMIES / "boss_demon_hd_death_sheet.png", 384, 384),
-        ],
-        outputs[1],
-    )
-    save_frame_diff(ENEMIES / "iron_tank_hd_walk_sheet.png", outputs[2], 256, 256, "iron")
-    save_frame_diff(ENEMIES / "boss_demon_hd_idle_sheet.png", outputs[3], 384, 384, "boss")
-    outputs.append(save_map_readability_grid())
-    return outputs
 
 
 def main() -> None:
     skeleton = extract_horizontal_frames(SRC / "skeleton_walk_source_v2.png", 8)
     ghost = extract_horizontal_frames(SRC / "ghost_float_source_v2.png", 6)
-    tank_source, boss_source, tank, boss = load_quality_enemy_sources()
-    normal_enemy_walks = build_normal_enemy_walks(skeleton, ghost, tank, boss)
-    boss_variant_idles = build_boss_variant_idles(boss)
+    tank_source, _legacy_boss_source, tank, legacy_boss = load_quality_enemy_sources()
+    normal_enemy_walks = build_normal_enemy_walks(skeleton, ghost, tank, legacy_boss)
+    boss_sprint_sets = build_boss_sprint_sets()
 
     outputs: list[Path] = []
 
@@ -1465,10 +1756,6 @@ def main() -> None:
         (build_source_attack_frames(tank_source, "tank", 4), 256, 256, 16, ENEMIES / "iron_tank_hd_attack_sheet.png"),
         (build_source_hit_frames(tank_source, "tank", 3), 256, 256, 16, ENEMIES / "iron_tank_hd_hit_sheet.png"),
         (build_source_death_frames(tank_source, "tank", 8), 256, 256, 16, ENEMIES / "iron_tank_hd_death_sheet.png"),
-        (boss, 384, 384, 20, ENEMIES / "boss_demon_hd_idle_sheet.png"),
-        (build_source_attack_frames(boss_source, "boss", 6), 384, 384, 20, ENEMIES / "boss_demon_hd_attack_sheet.png"),
-        (build_source_hit_frames(boss_source, "boss", 4), 384, 384, 20, ENEMIES / "boss_demon_hd_hit_sheet.png"),
-        (build_source_death_frames(boss_source, "boss", 10), 384, 384, 20, ENEMIES / "boss_demon_hd_death_sheet.png"),
     ]
     for name, walk_frames in normal_enemy_walks.items():
         tasks.extend([
@@ -1477,13 +1764,9 @@ def main() -> None:
             (hit_from(walk_frames, 3), 256, 256, 16, ENEMIES / f"{name}_hd_hit_sheet.png"),
             (death_from(walk_frames, 8), 256, 256, 16, ENEMIES / f"{name}_hd_death_sheet.png"),
         ])
-    for name, idle_frames in boss_variant_idles.items():
-        tasks.extend([
-            (idle_frames, 384, 384, 20, ENEMIES / f"{name}_hd_idle_sheet.png"),
-            (attack_from(idle_frames, 6), 384, 384, 20, ENEMIES / f"{name}_hd_attack_sheet.png"),
-            (hit_from(idle_frames, 4), 384, 384, 20, ENEMIES / f"{name}_hd_hit_sheet.png"),
-            (death_from(idle_frames, 10), 384, 384, 20, ENEMIES / f"{name}_hd_death_sheet.png"),
-        ])
+    for name, action_frames in boss_sprint_sets.items():
+        for action in ("idle", "attack", "hit", "death"):
+            tasks.append((action_frames[action], 384, 384, 20, ENEMIES / f"{name}_hd_{action}_sheet.png"))
 
     for frames, frame_w, frame_h, pad_bottom, out_path in tasks:
         is_death = "death" in out_path.stem

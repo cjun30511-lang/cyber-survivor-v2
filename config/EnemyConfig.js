@@ -132,6 +132,7 @@ export const EnemyConfig = {
         hitboxWidth: 72,      // 继续压缩碰撞范围，使首领压迫感来自体态而不是空气墙
         hitboxHeight: 84,
         goldReward: 50,
+        skillPattern: 'scatter',
         bulletScatterCooldown: 4000,
         circleNovaCooldown: 7000
     },
@@ -152,6 +153,7 @@ export const EnemyConfig = {
         hitboxWidth: 74,
         hitboxHeight: 86,
         goldReward: 50,
+        skillPattern: 'frostRing',
         bulletScatterCooldown: 3600,
         circleNovaCooldown: 7200
     },
@@ -172,6 +174,7 @@ export const EnemyConfig = {
         hitboxWidth: 78,
         hitboxHeight: 88,
         goldReward: 55,
+        skillPattern: 'plagueCloud',
         bulletScatterCooldown: 4300,
         circleNovaCooldown: 6500
     },
@@ -192,8 +195,93 @@ export const EnemyConfig = {
         hitboxWidth: 80,
         hitboxHeight: 90,
         goldReward: 60,
+        skillPattern: 'voidSpiral',
         bulletScatterCooldown: 3900,
         circleNovaCooldown: 6000
+    },
+
+    boss_furnace: {
+        texture: 'boss_furnace_idle',
+        animPrefix: 'boss_furnace',
+        isBoss: true,
+        spriteTint: null,
+        ritualTint: 0xff7a1a,
+        ritualAccent: 0x64210f,
+        bulletTint: 0xff7a1a,
+        maxHp: 1700,
+        speed: 72,
+        damage: 40,
+        xpReward: 1000,
+        scale: 1.20,
+        hitboxWidth: 80,
+        hitboxHeight: 90,
+        goldReward: 58,
+        skillPattern: 'furnaceLines',
+        bulletScatterCooldown: 4200,
+        circleNovaCooldown: 6400
+    },
+
+    boss_drowned: {
+        texture: 'boss_drowned_idle',
+        animPrefix: 'boss_drowned',
+        isBoss: true,
+        spriteTint: null,
+        ritualTint: 0x46c6d7,
+        ritualAccent: 0x174e5b,
+        bulletTint: 0x46c6d7,
+        maxHp: 1550,
+        speed: 80,
+        damage: 34,
+        xpReward: 1000,
+        scale: 1.17,
+        hitboxWidth: 76,
+        hitboxHeight: 88,
+        goldReward: 54,
+        skillPattern: 'drownedWave',
+        bulletScatterCooldown: 3500,
+        circleNovaCooldown: 7000
+    },
+
+    boss_blood: {
+        texture: 'boss_blood_idle',
+        animPrefix: 'boss_blood',
+        isBoss: true,
+        spriteTint: null,
+        ritualTint: 0xd51e38,
+        ritualAccent: 0x5e0d1c,
+        bulletTint: 0xff3150,
+        maxHp: 1750,
+        speed: 76,
+        damage: 44,
+        xpReward: 1000,
+        scale: 1.21,
+        hitboxWidth: 80,
+        hitboxHeight: 90,
+        goldReward: 62,
+        skillPattern: 'bloodCross',
+        bulletScatterCooldown: 3800,
+        circleNovaCooldown: 6200
+    },
+
+    boss_bone: {
+        texture: 'boss_bone_idle',
+        animPrefix: 'boss_bone',
+        isBoss: true,
+        spriteTint: null,
+        ritualTint: 0xd7c79a,
+        ritualAccent: 0x6a5a38,
+        bulletTint: 0xe6d6ad,
+        maxHp: 1900,
+        speed: 62,
+        damage: 46,
+        xpReward: 1000,
+        scale: 1.23,
+        hitboxWidth: 82,
+        hitboxHeight: 92,
+        goldReward: 65,
+        skillPattern: 'boneBarrage',
+        bulletScatterCooldown: 4600,
+        circleNovaCooldown: 5800
     }
 };
 

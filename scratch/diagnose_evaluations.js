@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const targetUrl = 'http://127.0.0.1:8000/cyber_exorcist_standalone.html';
+const bossKeys = ['boss', 'boss_frost', 'boss_plague', 'boss_void', 'boss_furnace', 'boss_drowned', 'boss_blood', 'boss_bone'];
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -160,7 +161,71 @@ async function main() {
     return 'SPAWNED_HEAVY_SUCCESS';
   })()`);
 
-  // 4. Chaotic battle scene
+  // 4. Verify every boss key, animation, and skill pattern can run.
+  await runEval('Spawn all boss variants and cast skills', `(() => {
+    const scene = window.game.scene.keys.BattleScene;
+    if (!scene) return 'NO_BATTLE';
+
+    const bossKeys = ${JSON.stringify(bossKeys)};
+    scene.enemiesGroup.clear(true, true);
+    scene.casterBullets.clear(true, true);
+    scene.player.isInvincible = true;
+    scene.player.hp = 9999;
+    if (GameState.run) {
+      GameState.run.hpMax = 9999;
+      GameState.run.hp = 9999;
+      GameState.run.isGameOver = false;
+    }
+    scene.combatSystem.lastPlayerHurtTime = Number.MAX_SAFE_INTEGER;
+
+    const missing = [];
+    const spawned = [];
+    const px = scene.player.x;
+    const py = scene.player.y;
+    const startX = px - 270;
+    const startY = py - 230;
+
+    bossKeys.forEach((key, index) => {
+      const config = EnemyConfig[key];
+      const prefix = config?.animPrefix;
+      ['idle', 'attack', 'hit', 'death'].forEach(action => {
+        const textureKey = action === 'idle' ? config?.texture : \`\${prefix}_\${action}\`;
+        const animKey = \`\${prefix}_\${action}_anim\`;
+        if (!textureKey || !scene.textures.exists(textureKey)) missing.push(\`texture:\${key}:\${action}\`);
+        if (!scene.anims.exists(animKey)) missing.push(\`anim:\${key}:\${action}\`);
+      });
+
+      const bx = startX + (index % 4) * 180;
+      const by = startY + Math.floor(index / 4) * 220;
+      const boss = new BossDemon(scene, bx, by, key);
+      boss.speed = 0;
+      if (boss.body) boss.body.setVelocity(0, 0);
+      scene.enemiesGroup.add(boss);
+      spawned.push({ key, skillPattern: boss.skillPattern, animPrefix: boss.animPrefix });
+      boss.castBossSkill(scene.player);
+    });
+
+    return {
+      spawned,
+      missing,
+      bulletCount: scene.casterBullets.getChildren().length
+    };
+  })()`);
+
+  console.log('⏳ Waiting 1 second for boss skill delayed releases...');
+  await delay(1000);
+
+  await runEval('Check boss skill release count', `(() => {
+    const scene = window.game.scene.keys.BattleScene;
+    if (!scene) return 'NO_BATTLE';
+    return {
+      enemies: scene.enemiesGroup.getChildren().length,
+      bullets: scene.casterBullets.getChildren().length,
+      activeBossKeys: scene.enemiesGroup.getChildren().filter(enemy => enemy.isBoss).map(enemy => enemy.configKey)
+    };
+  })()`);
+
+  // 5. Chaotic battle scene
   await runEval('Spawn chaos scene', `(() => {
     const scene = window.game.scene.keys.BattleScene;
     if (!scene) return 'NO_BATTLE';

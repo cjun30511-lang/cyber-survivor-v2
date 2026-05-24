@@ -126,6 +126,22 @@ export class BootScene extends Phaser.Scene {
             ['boss_void_attack', AssetManifest.boss_void_attack],
             ['boss_void_hit', AssetManifest.boss_void_hit],
             ['boss_void_death', AssetManifest.boss_void_death],
+            ['boss_furnace_idle', AssetManifest.boss_furnace_idle],
+            ['boss_furnace_attack', AssetManifest.boss_furnace_attack],
+            ['boss_furnace_hit', AssetManifest.boss_furnace_hit],
+            ['boss_furnace_death', AssetManifest.boss_furnace_death],
+            ['boss_drowned_idle', AssetManifest.boss_drowned_idle],
+            ['boss_drowned_attack', AssetManifest.boss_drowned_attack],
+            ['boss_drowned_hit', AssetManifest.boss_drowned_hit],
+            ['boss_drowned_death', AssetManifest.boss_drowned_death],
+            ['boss_blood_idle', AssetManifest.boss_blood_idle],
+            ['boss_blood_attack', AssetManifest.boss_blood_attack],
+            ['boss_blood_hit', AssetManifest.boss_blood_hit],
+            ['boss_blood_death', AssetManifest.boss_blood_death],
+            ['boss_bone_idle', AssetManifest.boss_bone_idle],
+            ['boss_bone_attack', AssetManifest.boss_bone_attack],
+            ['boss_bone_hit', AssetManifest.boss_bone_hit],
+            ['boss_bone_death', AssetManifest.boss_bone_death],
 
             // VFX
             ['talisman_proj_a', AssetManifest.talisman_proj_a],
@@ -202,7 +218,11 @@ export class BootScene extends Phaser.Scene {
                     key.startsWith('boss_demon_') ||
                     key.startsWith('boss_frost_') ||
                     key.startsWith('boss_plague_') ||
-                    key.startsWith('boss_void_')
+                    key.startsWith('boss_void_') ||
+                    key.startsWith('boss_furnace_') ||
+                    key.startsWith('boss_drowned_') ||
+                    key.startsWith('boss_blood_') ||
+                    key.startsWith('boss_bone_')
                 ) {
                     this.textures.addSpriteSheet(key, image, { frameWidth: 384, frameHeight: 384 });
                 } else if (key.startsWith('talisman_')) {
@@ -454,7 +474,7 @@ export class BootScene extends Phaser.Scene {
         });
 
         // Boss Demon Animations (384x384)
-        ['boss_demon', 'boss_frost', 'boss_plague', 'boss_void'].forEach((prefix) => {
+        ['boss_demon', 'boss_frost', 'boss_plague', 'boss_void', 'boss_furnace', 'boss_drowned', 'boss_blood', 'boss_bone'].forEach((prefix) => {
             this.anims.create({
                 key: `${prefix}_idle_anim`,
                 frames: this.anims.generateFrameNumbers(`${prefix}_idle`, { start: 0, end: 5 }),

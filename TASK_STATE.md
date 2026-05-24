@@ -294,3 +294,59 @@ Next safe handoff point:
   - 地图方向已纠正为高质量源图资产，8 张图在 QA 联系图中能区分为教堂、机械工坊、墓园、水渠、熔炉、虚空裂隙、瘟疫庭院、冰殿。
   - Boss 当前比例已经足够大；继续 scale tune 的收益低，风险是遮挡战场。
   - 下一步应进入 Boss 动作帧完善和技能差异化，而不是继续调比例或只换颜色。
+
+### 2026-05-24 中文补充：Boss 动作帧与技能差异化
+
+- 本轮继续采用多智能体协作：
+  - 主控智能体：负责运行时接线、技能模式、构建、验收、Git 边界。
+  - 动画切帧智能体：从 `scratch/generated_art_v2/boss_sprint_1/boss_source_contact_01_accepted.png` 切出 8 个 Boss 源图并生成动作 sheet。
+  - 运行接线/验收智能体：只读确认新增 Boss 需要同步的 Manifest、build、BootScene、EnemyConfig、WaveConfig、BossDemon 和验收脚本风险点。
+- 已生成 8 套 Boss：
+  - `boss_demon`
+  - `boss_frost`
+  - `boss_plague`
+  - `boss_void`
+  - `boss_furnace`
+  - `boss_drowned`
+  - `boss_blood`
+  - `boss_bone`
+- 每套 Boss 现在都有 4 类动作 sheet：
+  - `idle`: 呼吸、摆动、肢体错位。
+  - `attack`: 前压、挥臂、主题色蓄力环和爆发线。
+  - `hit`: 后仰、闪白、受击火花。
+  - `death`: 坍塌、分块下沉、裂纹和碎裂粒子。
+- 已完成运行时四联动：
+  - `assets/AssetManifest.js` 增加 4 个新 Boss 的 16 个资源 key。
+  - `build.py` 增加 16 个 Base64 占位符路径。
+  - `scenes/BootScene.js` 加载新 Boss sheet，按 384x384 注册 spritesheet，并创建 idle/attack/hit/death 动画。
+  - `config/WaveConfig.js` 的 `bossPool` 扩到 8 个，继续按 `mapIndex % bossPool.length` 每关轮换。
+- 已完成 Boss 技能差异化：
+  - `boss`: `scatter`，正面 5 向散射。
+  - `boss_frost`: `frostRing`，冰环扩散弹幕。
+  - `boss_plague`: `plagueCloud`，玩家位置毒云预警和扩散。
+  - `boss_void`: `voidSpiral`，虚空螺旋弹幕。
+  - `boss_furnace`: `furnaceLines`，三条熔炉直线预警和高速线弹。
+  - `boss_drowned`: `drownedWave`，扇形水波多列推进。
+  - `boss_blood`: `bloodCross`，十字血线预警和四向重弹。
+  - `boss_bone`: `boneBarrage`，多点骨雨落点预警。
+- 已补验收脚本：
+  - `scratch/diagnose_evaluations.js` 现在会遍历 8 个 Boss，检查贴图、动画和技能触发。
+  - `scratch/capture_screenshots.js` 现在额外输出 8 Boss 阵容和 8 Boss 技能预警截图。
+- 已新增/更新 QA 证据：
+  - `scratch/runtime_acceptance/qa_boss_roster_contact.png`
+  - `scratch/runtime_acceptance/qa_boss_action_contact.png`
+  - `scratch/runtime_acceptance/qa_boss_motion_diff.png`
+  - `scratch/runtime_acceptance/boss_sprint_2_browser/real_boss_roster.png`
+  - `scratch/runtime_acceptance/boss_sprint_2_browser/real_boss_skills.png`
+- 已验证：
+  - `python3 -m py_compile tools/rebuild_core_hd_assets.py`
+  - `node --check` 覆盖 Manifest、BootScene、EnemyConfig、WaveConfig、BossDemon 和验收脚本。
+  - `python3 tools/rebuild_core_hd_assets.py`
+  - `python3 build.py`
+  - `node scratch/capture_screenshots.js`
+  - `node scratch/diagnose_evaluations.js`
+- 验收结果：
+  - 8 个 Boss 均能实例化。
+  - 8 个 Boss 的 idle/attack/hit/death 贴图和动画均存在，`missing: []`。
+  - 8 个技能模式均触发成功，1 秒后 Boss 技能/子弹实体数量为 136。
+  - `cyber_exorcist_standalone.html` 和 `index.html` 当前约 90MB，低于 GitHub 100MB 单文件硬限制，但已经接近上限；后续继续加大资产时应拆外部资源或做加载器，不宜继续无限扩大单 HTML。

@@ -4,6 +4,7 @@ const path = require('path');
 
 const targetUrl = process.env.GAME_URL || 'http://127.0.0.1:8000/cyber_exorcist_standalone.html?screenshot=true';
 const artifactDir = process.env.ARTIFACT_DIR || '/Users/shenjun8676/.gemini/antigravity/brain/dae1de1e-74a6-46a7-944b-bdfb2b33c3a4';
+const bossKeys = ['boss', 'boss_frost', 'boss_plague', 'boss_void', 'boss_furnace', 'boss_drowned', 'boss_blood', 'boss_bone'];
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -203,7 +204,95 @@ async function main() {
   fs.writeFileSync(sc5Path, Buffer.from(sc5.data, 'base64'));
   console.log(`💾 Saved Heavy Monsters Screenshot: ${sc5Path}`);
 
-  // 5. Spawn chaotic battle scene (mixed mobs + projectile fireworks) - do not freeze to let action particles fly!
+  // 5. Spawn all 8 bosses as a compact roster check.
+  console.log('👑 Spawning all 8 Boss variants for roster screenshot...');
+  await send('Runtime.evaluate', {
+    expression: `(() => {
+      const scene = window.game.scene.keys.BattleScene;
+      if (!scene) return 'NO_BATTLE';
+
+      scene.enemiesGroup.clear(true, true);
+      scene.casterBullets.clear(true, true);
+      scene.player.isInvincible = true;
+      scene.player.hp = 9999;
+      if (GameState.run) {
+        GameState.run.hpMax = 9999;
+        GameState.run.hp = 9999;
+        GameState.run.isGameOver = false;
+      }
+      scene.combatSystem.lastPlayerHurtTime = Number.MAX_SAFE_INTEGER;
+
+      const bossKeys = ${JSON.stringify(bossKeys)};
+      const px = scene.player.x;
+      const py = scene.player.y;
+      const startX = px - 270;
+      const startY = py - 330;
+
+      bossKeys.forEach((key, index) => {
+        const bx = startX + (index % 4) * 180;
+        const by = startY + Math.floor(index / 4) * 260;
+        const boss = new BossDemon(scene, bx, by, key);
+        boss.speed = 0;
+        if (boss.body) boss.body.setVelocity(0, 0);
+        boss.update = () => {};
+        scene.enemiesGroup.add(boss);
+      });
+
+      return 'SPAWNED_BOSS_ROSTER';
+    })()`,
+    returnByValue: true
+  });
+
+  await delay(1000);
+
+  console.log('📸 Capturing Screenshot 6: 8 Boss Roster...');
+  const scBossRoster = await send('Page.captureScreenshot', { format: 'png' });
+  const scBossRosterPath = path.join(artifactDir, 'real_boss_roster.png');
+  fs.writeFileSync(scBossRosterPath, Buffer.from(scBossRoster.data, 'base64'));
+  console.log(`💾 Saved Boss Roster Screenshot: ${scBossRosterPath}`);
+
+  // 6. Force all 8 Bosses to cast once so telegraphs and projectile styles are visible.
+  console.log('🧪 Triggering all 8 Boss skills for VFX screenshot...');
+  await send('Runtime.evaluate', {
+    expression: `(() => {
+      const scene = window.game.scene.keys.BattleScene;
+      if (!scene) return 'NO_BATTLE';
+      scene.enemiesGroup.getChildren().forEach(enemy => {
+        if (enemy instanceof BossDemon) {
+          enemy.castBossSkill(scene.player);
+        }
+      });
+      return 'CAST_BOSS_SKILLS';
+    })()`,
+    returnByValue: true
+  });
+
+  await delay(520);
+
+  console.log('📸 Capturing Screenshot 7: 8 Boss Skill Telegraphs...');
+  const scBossSkills = await send('Page.captureScreenshot', { format: 'png' });
+  const scBossSkillsPath = path.join(artifactDir, 'real_boss_skills.png');
+  fs.writeFileSync(scBossSkillsPath, Buffer.from(scBossSkills.data, 'base64'));
+  console.log(`💾 Saved Boss Skill Screenshot: ${scBossSkillsPath}`);
+
+  await send('Runtime.evaluate', {
+    expression: `(() => {
+      const scene = window.game.scene.keys.BattleScene;
+      if (!scene) return 'NO_BATTLE';
+      scene.player.isInvincible = false;
+      scene.player.hp = 90;
+      if (GameState.run) {
+        GameState.run.hpMax = 90;
+        GameState.run.hp = 90;
+        GameState.run.isGameOver = false;
+      }
+      scene.combatSystem.lastPlayerHurtTime = 0;
+      return 'RESTORED_PLAYER_FOR_CHAOS';
+    })()`,
+    returnByValue: true
+  });
+
+  // 7. Spawn chaotic battle scene (mixed mobs + projectile fireworks) - do not freeze to let action particles fly!
   console.log('💥 Spawning chaotic battle scene (mixed mobs + projectile fireworks)...');
   await send('Runtime.evaluate', {
     expression: `(() => {
@@ -267,14 +356,14 @@ async function main() {
   // Wait 400ms for particles and projectiles to spread naturally
   await delay(400);
 
-  // Take Screenshot 6: Chaotic Battle Scene (Chaos & Readability)
-  console.log('📸 Capturing Screenshot 6: Chaotic Battle Scene (Chaos & Readability)...');
+  // Take Screenshot 8: Chaotic Battle Scene (Chaos & Readability)
+  console.log('📸 Capturing Screenshot 8: Chaotic Battle Scene (Chaos & Readability)...');
   const sc6 = await send('Page.captureScreenshot', { format: 'png' });
   const sc6Path = path.join(artifactDir, 'real_combat_chaos.png');
   fs.writeFileSync(sc6Path, Buffer.from(sc6.data, 'base64'));
   console.log(`💾 Saved Chaos Battle Screenshot: ${sc6Path}`);
 
-  console.log('🎉 All 6 high-fidelity screenshots taken successfully!');
+  console.log('🎉 All 8 high-fidelity screenshots taken successfully!');
   ws.close();
 }
 
